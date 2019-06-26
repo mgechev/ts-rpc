@@ -48,8 +48,34 @@ const isRPCService = (n: ts.Node, program: ts.Program): boolean => {
   });
 };
 
-const parseMethods = (n: ts.InterfaceDeclaration, program: ts.Program) => {
-  return [];
+const hasSideEffects = (m: ts.MethodSignature, program: ts.Program): boolean => {
+  const type = m.type as any;
+  if (!type.typeArguments || type.typeArguments.length !== 1) return true;
+  const t = findSymbol(type.typeArguments[0], program.getTypeChecker());
+  const arg = program.getTypeChecker().getTypeAtLocation(type.typeArguments[0]) as any;
+  if (!type || !type.typeName || type.typeName.name !== 'Promise') return true;
+  if (arg && arg.intrinsicName === 'void') return true;
+  return false;
+};
+
+const parseMethod = (n: ts.TypeElement, program: ts.Program): Method | null => {
+  if (n.kind !== ts.SyntaxKind.MethodSignature) {
+    return null;
+  }
+  const method = n as ts.MethodSignature;
+  const type = method.type as any;
+  if (!type.typeArguments || type.typeArguments.length !== 1) return null;
+  const returnType = findSymbol(type.typeArguments[0], program.getTypeChecker());
+  return {
+    name: method.name.getText(),
+    returnType,
+    sideEffect: hasSideEffects(method, program),
+    arguments: []
+  };
+};
+
+const parseMethods = (n: ts.InterfaceDeclaration, program: ts.Program): Method[] => {
+  return n.members.map(m => parseMethod(m, program)).filter(m => m !== null) as Method[];
 };
 
 const parseService = (n: ts.InterfaceDeclaration, program: ts.Program) => {
