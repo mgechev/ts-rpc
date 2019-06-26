@@ -1,24 +1,72 @@
-import * as ts from 'typescript';
-import { parse, createMemoryProgram } from '../parser';
+import { parse } from '../parser';
+import { createMemoryProgram } from '../program/program';
 
-describe('createMemoryProgram', () => {
+describe('parser', () => {
   it('should not throw', () => {
-    expect(() => createMemoryProgram(new Map([['/foo.ts', 'class Bar {}']]))).not.toThrow();
+    const program = createMemoryProgram(
+      new Map([
+        [
+          '/node_modules/ts-rpc.ts',
+          `
+          export interface Service {}
+          `
+        ],
+        [
+          '/foo.ts',
+          `
+            import {Service} from 'ts-rpc';
+            interface Bar extends Service {}
+          `
+        ]
+      ])
+    );
+    expect(() => parse(program)).not.toThrow();
   });
 
-  it('should get file AST', () => {
-    const program = createMemoryProgram(new Map([['/foo.ts', 'class Bar {}']]));
-    const sourceFile = program.getSourceFile('/foo.ts');
-    expect(sourceFile).toBeDefined();
-    let foundClass = false;
-    sourceFile!.forEachChild(n => {
-      if (
-        n.kind === ts.SyntaxKind.ClassDeclaration &&
-        (n as ts.ClassDeclaration).name!.text === 'Bar'
-      ) {
-        foundClass = true;
-      }
-    });
-    expect(foundClass).toBeTruthy();
+  it('should find the service name', () => {
+    const program = createMemoryProgram(
+      new Map([
+        [
+          '/node_modules/ts-rpc.ts',
+          `
+          export interface Service {}
+          `
+        ],
+        [
+          '/foo.ts',
+          `
+            import {Service as Sample} from 'ts-rpc';
+            interface Bar extends Sample {}
+          `
+        ]
+      ])
+    );
+    const result = parse(program);
+    expect(result.length).toBe(1);
+    expect(result[0].name).toBe('Bar');
+  });
+
+  it('should find the service name with indirect imports', () => {
+    const program = createMemoryProgram(
+      new Map([
+        [
+          '/node_modules/ts-rpc.ts',
+          `
+          export interface Service {}
+          `
+        ],
+        ['/bar.ts', 'export {Service as bar} from "ts-rpc";'],
+        [
+          '/foo.ts',
+          `
+            import {bar as foo} from './bar';
+            interface Bar extends foo {}
+          `
+        ]
+      ])
+    );
+    const result = parse(program);
+    expect(result.length).toBe(1);
+    expect(result[0].name).toBe('Bar');
   });
 });

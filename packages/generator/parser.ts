@@ -1,120 +1,77 @@
 import * as ts from 'typescript';
-import { dirname, resolve, join } from 'path';
-import { existsSync, readFileSync } from 'fs';
 
-const defaultLib = 'lib.d.ts';
-const defaultLibLocation = join(dirname(require.resolve('typescript')), defaultLib);
-const createMemoryHost = (files: Map<string, string>) => {
-  files.set(defaultLib, defaultLibLocation);
+import { Service, Method, Argument, TypeSymbol } from './metadata';
 
-  const host: ts.CompilerHost = {
-    getSourceFile(fileName: string, languageVersion: ts.ScriptTarget): ts.SourceFile | undefined {
-      const content = files.get(fileName);
-      if (!content) return undefined;
-      return ts.createSourceFile(fileName, content, languageVersion);
-    },
-    fileExists(fileName: string) {
-      return files.has(fileName);
-    },
-    readFile(fileName: string) {
-      return files.get(fileName);
-    },
-    getDefaultLibFileName(options: ts.CompilerOptions): string {
-      return defaultLib;
-    },
-    writeFile(name: string, content: string, _: boolean) {
-      files.set(name, content);
-    },
-    getCurrentDirectory(): string {
-      return '/';
-    },
-    getCanonicalFileName(fileName: string): string {
-      return fileName;
-    },
-    useCaseSensitiveFileNames(): boolean {
-      return true;
-    },
-    getNewLine(): string {
-      return '\n';
-    },
-    getDefaultLibLocation(): string {
-      return defaultLibLocation;
-    },
-    getSourceFileByPath(
-      fileName: string,
-      path: ts.Path,
-      languageVersion: ts.ScriptTarget
-    ): ts.SourceFile | undefined {
-      const filePath = join(fileName, path);
-      if (!files.has(filePath)) return undefined;
-      return ts.createSourceFile(filePath, files.get(filePath) as string, languageVersion);
-    },
-    getCancellationToken(): ts.CancellationToken {
-      return {
-        isCancellationRequested() {
-          return false;
-        },
-        throwIfCancellationRequested() {
-          throw new Error('Cancellation requested');
-        }
-      };
-    }
-    // resolveModuleNames?(
-    //   moduleNames: string[],
-    //   containingFile: string,
-    //   reusedNames?: string[],
-    //   redirectedReference?: ResolvedProjectReference
-    // ): (ResolvedModule | undefined)[] {},
-    // readDirectory?(
-    //   rootDir: string,
-    //   extensions: ReadonlyArray<string>,
-    //   excludes: ReadonlyArray<string> | undefined,
-    //   includes: ReadonlyArray<string>,
-    //   depth?: number
-    // ): string[] {},
-    // resolveTypeReferenceDirectives?(
-    //   typeReferenceDirectiveNames: string[],
-    //   containingFile: string,
-    //   redirectedReference?: ResolvedProjectReference
-    // ): (ResolvedTypeReferenceDirective | undefined)[] {},
-    // getEnvironmentVariable?(name: string): string | undefined {},
-    // createHash?(data: string): string {},
-    // getParsedCommandLine?(fileName: string): ParsedCommandLine | undefined {}
-  };
-  return host;
-};
-
-export const createMemoryProgram = (files: Map<string, string>) => {
-  const options: ts.CompilerOptions = {};
-  const program = ts.createProgram([...files.keys()], options, createMemoryHost(files));
-  return program;
-};
-
-export const createProgram = (tsconfigFile: string) => {
-  const config = ts.readConfigFile(tsconfigFile, ts.sys.readFile);
-  const projectDirectory: string = dirname(tsconfigFile);
-  const parseConfigHost: ts.ParseConfigHost = {
-    fileExists: existsSync,
-    readDirectory: ts.sys.readDirectory,
-    readFile: file => readFileSync(file, 'utf8'),
-    useCaseSensitiveFileNames: true
-  };
-  const parsed = ts.parseJsonConfigFileContent(
-    config.config,
-    parseConfigHost,
-    resolve(projectDirectory),
-    { noEmit: true }
-  );
-
-  if (config.error !== undefined) {
-    throw new Error(config.error.messageText.toString());
+const getAliasSymbols = (type: ts.Type, tch: ts.TypeChecker) => {
+  const symbol = type.getSymbol();
+  if (symbol && symbol.declarations && symbol.declarations.length) {
+    return (type.aliasSymbol ? [type.aliasSymbol] : []).concat(
+      tch
+        .getSymbolsInScope(symbol.declarations[0], ts.SymbolFlags.TypeAlias)
+        .filter(s => type === tch.getDeclaredTypeOfSymbol(s))
+    );
   }
-
-  const host = ts.createCompilerHost(parsed.options, true);
-  const program = ts.createProgram(parsed.fileNames, parsed.options, host);
-  return program;
+  return type.aliasSymbol ? [type.aliasSymbol] : [];
 };
 
-const parseFile = (content: string, program: ts.Program) => {};
+const findSymbol = (node: ts.Node, tch: ts.TypeChecker): TypeSymbol | null => {
+  const type = tch.getTypeAtLocation(node);
+  if (type && type.symbol) {
+    return {
+      name: type.symbol.name,
+      path: type.symbol.declarations[0].getSourceFile().fileName
+    };
+  }
+  return null;
+};
 
-export const parse = (program: ts.Program) => {};
+const isRPCServiceInterface = (expr: ts.ExpressionWithTypeArguments, program: ts.Program) => {
+  const tch = program.getTypeChecker();
+  const symbol = tch.getSymbolAtLocation(expr.expression);
+  if (!symbol) return false;
+  const type = findSymbol(expr, tch);
+  if (!type) return false;
+  return type.name === 'Service' && type.path.includes('node_modules/ts-rpc');
+};
+
+const isRPCService = (n: ts.Node, program: ts.Program): boolean => {
+  if (n.kind !== ts.SyntaxKind.InterfaceDeclaration) {
+    return false;
+  }
+  const intr = <ts.InterfaceDeclaration>n;
+  if (!intr.heritageClauses) {
+    return false;
+  }
+  return intr.heritageClauses.some(h => {
+    if (!h.types.length) return false;
+    return h.types.some(expr => isRPCServiceInterface(expr, program));
+  });
+};
+
+const parseMethods = (n: ts.InterfaceDeclaration, program: ts.Program) => {
+  return [];
+};
+
+const parseService = (n: ts.InterfaceDeclaration, program: ts.Program) => {
+  const name = n.name.getText();
+  return {
+    name,
+    methods: parseMethods(n, program)
+  } as Service;
+};
+
+const parseFile = (source: ts.SourceFile, program: ts.Program): Service[] => {
+  const result: Service[] = [];
+  source.forEachChild(c => {
+    if (!isRPCService(c, program)) return;
+    result.push(parseService(c as ts.InterfaceDeclaration, program));
+  });
+  return result;
+};
+
+export const parse = (program: ts.Program) => {
+  return ([] as Service[]).concat.apply(
+    [],
+    program.getSourceFiles().map(sf => parseFile(sf, program))
+  );
+};
