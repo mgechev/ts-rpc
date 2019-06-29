@@ -115,7 +115,7 @@ describe('parser', () => {
     });
   });
 
-  it("should read service's method types", () => {
+  it("should read service's method effects", () => {
     const program = createMemoryProgram(
       new Map([
         tsrpc,
@@ -143,7 +143,7 @@ describe('parser', () => {
     expect(result[0].methods[1].sideEffect).toBe(false);
   });
 
-  it("should read service's method types", () => {
+  it("should read service's method parameters", () => {
     const program = createMemoryProgram(
       new Map([
         tsrpc,
