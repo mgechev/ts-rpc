@@ -2,18 +2,6 @@ import * as ts from 'typescript';
 
 import { Service, Method, Argument, TypeSymbol } from './metadata';
 
-const getAliasSymbols = (type: ts.Type, tch: ts.TypeChecker) => {
-  const symbol = type.getSymbol();
-  if (symbol && symbol.declarations && symbol.declarations.length) {
-    return (type.aliasSymbol ? [type.aliasSymbol] : []).concat(
-      tch
-        .getSymbolsInScope(symbol.declarations[0], ts.SymbolFlags.TypeAlias)
-        .filter(s => type === tch.getDeclaredTypeOfSymbol(s))
-    );
-  }
-  return type.aliasSymbol ? [type.aliasSymbol] : [];
-};
-
 const findSymbol = (node: ts.Node, tch: ts.TypeChecker): TypeSymbol | null => {
   const type = tch.getTypeAtLocation(node);
   if (type && type.symbol) {
@@ -50,12 +38,30 @@ const isRPCService = (n: ts.Node, program: ts.Program): boolean => {
 
 const hasSideEffects = (m: ts.MethodSignature, program: ts.Program): boolean => {
   const type = m.type as any;
+  const tch = program.getTypeChecker();
   if (!type.typeArguments || type.typeArguments.length !== 1) return true;
-  const t = findSymbol(type.typeArguments[0], program.getTypeChecker());
-  const arg = program.getTypeChecker().getTypeAtLocation(type.typeArguments[0]) as any;
-  if (!type || !type.typeName || type.typeName.name !== 'Promise') return true;
-  if (arg && arg.intrinsicName === 'void') return true;
-  return false;
+  const t = findSymbol(type.typeArguments[0], tch);
+  const arg = tch.getTypeAtLocation(type.typeArguments[0]) as any;
+  // TODO(mgechev): report as an error, every method should be async.
+  if (!type || !type.typeName || type.typeName.text !== 'Promise') return true;
+  const methodType = tch.getTypeAtLocation(m);
+
+  const voidType = arg && arg.intrinsicName === 'void';
+  let sideEffect = voidType;
+  if (methodType.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodSignature) {
+    const valueDeclaration = methodType.symbol.valueDeclaration as ts.MethodSignature;
+    const typeParams = ((valueDeclaration.typeParameters || []) as any[]).map(p => findSymbol(p, tch))
+      .filter(t => t !== null);
+    if (typeParams.length > 1) {
+      // TODO(mgechev): report an error
+    }
+    sideEffect = typeParams.length === 0 || typeParams[0]!.name !== 'Read';
+  }
+  if (voidType && !sideEffect) {
+    // TODO(mgechev): report an error
+    sideEffect = true;
+  }
+  return sideEffect;
 };
 
 const parseMethod = (n: ts.TypeElement, program: ts.Program): Method | null => {

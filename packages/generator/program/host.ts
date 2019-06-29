@@ -1,11 +1,21 @@
 import * as ts from 'typescript';
 import { join, dirname } from 'path';
+import { readFileSync, readdirSync, statSync } from 'fs';
 
-const defaultLib = 'lib.d.ts';
-const defaultLibLocation = join(dirname(require.resolve('typescript')), defaultLib);
+const defaultLibName = 'lib.d.ts';
+const defaultLibPath = dirname(require.resolve('typescript'));
+const defaultLibLocation = join(defaultLibPath, defaultLibName);
+
+const defaultLib = readFileSync(defaultLibLocation).toString();
 
 export const createMemoryHost = (files: Map<string, string>) => {
-  files.set(defaultLib, defaultLibLocation);
+  readdirSync(defaultLibPath).forEach(path => {
+    path = join(defaultLibPath, path);
+    if (statSync(path).isFile()) {
+      files.set(path, readFileSync(path).toString())
+    }
+  });
+  files.set(defaultLibName, defaultLib);
 
   const host: ts.CompilerHost = {
     getSourceFile(fileName: string, languageVersion: ts.ScriptTarget): ts.SourceFile | undefined {
@@ -22,8 +32,8 @@ export const createMemoryHost = (files: Map<string, string>) => {
     readFile(fileName: string) {
       return files.get(fileName);
     },
-    getDefaultLibFileName(options: ts.CompilerOptions): string {
-      return defaultLib;
+    getDefaultLibFileName(_: ts.CompilerOptions): string {
+      return defaultLibName;
     },
     writeFile(name: string, content: string, _: boolean) {
       files.set(name, content);
@@ -41,7 +51,7 @@ export const createMemoryHost = (files: Map<string, string>) => {
       return '\n';
     },
     getDefaultLibLocation(): string {
-      return defaultLibLocation;
+      return defaultLibPath;
     },
     getSourceFileByPath(
       fileName: string,

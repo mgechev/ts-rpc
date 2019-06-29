@@ -1,16 +1,18 @@
 import { parse } from '../parser';
 import { createMemoryProgram } from '../program/program';
 
+const tsrpc: [string, string] = [
+  '/node_modules/ts-rpc.ts',
+  `
+  export interface Service {}
+  `
+];
+
 describe('parser', () => {
   it('should not throw', () => {
     const program = createMemoryProgram(
       new Map([
-        [
-          '/node_modules/ts-rpc.ts',
-          `
-          export interface Service {}
-          `
-        ],
+        tsrpc,
         [
           '/foo.ts',
           `
@@ -26,12 +28,7 @@ describe('parser', () => {
   it('should find the service name', () => {
     const program = createMemoryProgram(
       new Map([
-        [
-          '/node_modules/ts-rpc.ts',
-          `
-          export interface Service {}
-          `
-        ],
+        tsrpc,
         [
           '/foo.ts',
           `
@@ -49,12 +46,7 @@ describe('parser', () => {
   it('should find the service name with indirect imports', () => {
     const program = createMemoryProgram(
       new Map([
-        [
-          '/node_modules/ts-rpc.ts',
-          `
-          export interface Service {}
-          `
-        ],
+        tsrpc,
         ['/bar.ts', 'export {Service as bar} from "ts-rpc";'],
         [
           '/foo.ts',
@@ -73,12 +65,7 @@ describe('parser', () => {
   it("should read service's method names", () => {
     const program = createMemoryProgram(
       new Map([
-        [
-          '/node_modules/ts-rpc.ts',
-          `
-          export interface Service {}
-          `
-        ],
+        tsrpc,
         ['/bar.ts', 'export {Service as bar} from "ts-rpc";'],
         [
           '/foo.ts',
@@ -103,12 +90,7 @@ describe('parser', () => {
   it("should read service's method types", () => {
     const program = createMemoryProgram(
       new Map([
-        [
-          '/node_modules/ts-rpc.ts',
-          `
-          export interface Service {}
-          `
-        ],
+        tsrpc,
         ['/bar.ts', 'export {Service as bar} from "ts-rpc";'],
         [
           '/foo.ts',
@@ -131,5 +113,33 @@ describe('parser', () => {
       name: 'Human',
       path: '/foo.ts'
     });
+  });
+
+  it("should read service's method types", () => {
+    const program = createMemoryProgram(
+      new Map([
+        tsrpc,
+        [
+          '/foo.ts',
+          `
+            import {Service} from 'ts-rpc';
+
+            interface Human {}
+            interface Bar extends Service {
+              foo<Mutate>(): Promise<void>;
+              baz<Read>(): Promise<Human>;
+            }
+          `
+        ]
+      ])
+    );
+    const result = parse(program);
+    expect(result.length).toBe(1);
+    expect(result[0].name).toBe('Bar');
+    expect(result[0].methods[0].returnType).toBe(null);
+    expect(result[0].methods[0].sideEffect).toBe(true);
+    expect(result[0].methods[1].returnType!.name).toBe('Human');
+    expect(result[0].methods[1].returnType!.path).toBe('/foo.ts');
+    expect(result[0].methods[1].sideEffect).toBe(false);
   });
 });
