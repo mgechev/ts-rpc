@@ -4,6 +4,12 @@ import { Service, Method, Argument, TypeSymbol } from './metadata';
 
 const findSymbol = (node: ts.Node, tch: ts.TypeChecker): TypeSymbol | null => {
   const type = tch.getTypeAtLocation(node);
+  if (type && (type as any).intrinsicName) {
+    return {
+      name: (type as any).intrinsicName,
+      path: ''
+    };
+  }
   if (type && type.symbol) {
     return {
       name: type.symbol.name,
@@ -64,6 +70,21 @@ const hasSideEffects = (m: ts.MethodSignature, program: ts.Program): boolean => 
   return sideEffect;
 };
 
+const parseArguments = (m: ts.MethodSignature, program: ts.Program): Argument[] => {
+  const tch = program.getTypeChecker();
+  return m.parameters.map(p => {
+    const type = findSymbol(p, tch);
+    if (type === null) {
+      // TODO(mgechev): report error for unresolvable type
+      return null;
+    }
+    return {
+      type,
+      name: p.name.getText()
+    };
+  }).filter(arg => arg !== null) as Argument[];
+};
+
 const parseMethod = (n: ts.TypeElement, program: ts.Program): Method | null => {
   if (n.kind !== ts.SyntaxKind.MethodSignature) {
     return null;
@@ -72,11 +93,12 @@ const parseMethod = (n: ts.TypeElement, program: ts.Program): Method | null => {
   const type = method.type as any;
   if (!type.typeArguments || type.typeArguments.length !== 1) return null;
   const returnType = findSymbol(type.typeArguments[0], program.getTypeChecker());
+  if (!returnType) return null;
   return {
     name: method.name.getText(),
     returnType,
     sideEffect: hasSideEffects(method, program),
-    arguments: []
+    arguments: parseArguments(method, program)
   };
 };
 

@@ -12,7 +12,7 @@ export interface Method {
   name: string;
   sideEffect: boolean;
   arguments: Argument[];
-  returnType: TypeSymbol | null;
+  returnType: TypeSymbol;
 }
 
 export interface Service {
