@@ -147,10 +147,7 @@ describe('parser', () => {
     const program = createMemoryProgram(
       new Map([
         tsrpc,
-        [
-          '/bar.ts',
-          'export type foo = never;'
-        ],
+        ['/bar.ts', 'export type foo = never;'],
         [
           '/foo.ts',
           `
@@ -173,7 +170,7 @@ describe('parser', () => {
     expect(result[0].methods[0].arguments[1].type.name).toBe('never');
   });
 
-  it("should read service's method parameters & return types when build of polymorphic types", () => {
+  it("should read service's method type when built of polymorphic types", () => {
     const program = createMemoryProgram(
       new Map([
         tsrpc,
@@ -209,6 +206,50 @@ describe('parser', () => {
     expect(returnType.path).toBe('/bar.ts');
     expect(returnType.params!.length).toBe(1);
     const params = returnType.params as any;
+    expect(params[0].name).toBe('Bar');
+    expect(params[0].path).toBe('/bar.ts');
+    expect(params[0].params.length).toBe(2);
+    expect(params[0].params[0].name).toBe('Qux');
+    expect(params[0].params[0].path).toBe('/foo.ts');
+    expect(params[0].params[1].name).toBe('FooBar');
+    expect(params[0].params[1].path).toBe('/foo.ts');
+  });
+
+  it("should read service's method parameters when built of polymorphic types", () => {
+    const program = createMemoryProgram(
+      new Map([
+        tsrpc,
+        [
+          '/bar.ts',
+          `
+          export type Foo<T> = T | T[];
+          export type Bar<T, R> = T | R[];
+          `
+        ],
+        [
+          '/foo.ts',
+          `
+            import {Service} from 'ts-rpc';
+            import {Foo, Bar} from './bar';
+
+            interface Qux {}
+            interface FooBar {}
+
+            interface Human {}
+            interface RPC extends Service {
+              foo<Mutate>(a: Foo<Bar<Qux, FooBar>>, b: foo): Promise<void>;
+            }
+          `
+        ]
+      ])
+    );
+    const result = parse(program);
+    expect(result.length).toBe(1);
+    expect(result[0].name).toBe('RPC');
+    const { returnType } = result[0].methods[0];
+    const args = result[0].methods[0].arguments;
+    expect(returnType.name).toBe('void');
+    const params = args[0].type.params as any;
     expect(params[0].name).toBe('Bar');
     expect(params[0].path).toBe('/bar.ts');
     expect(params[0].params.length).toBe(2);

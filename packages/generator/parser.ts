@@ -9,13 +9,21 @@ const getTypeFromSymbol = (s: ts.Symbol) => {
   };
 };
 
-const getType = (node: ts.Node, tch: ts.TypeChecker): TypeSymbol | null => {
-  let type: ts.Type;
+const getTypeFromNode = (node: ts.Node, tch: ts.TypeChecker) => {
   if (ts.isTypeReferenceNode(node)) {
-    type = tch.getTypeAtLocation((node as ts.TypeReferenceNode).typeName);
-  } else {
-    type = tch.getTypeAtLocation(node);
+    return tch.getTypeAtLocation((node as ts.TypeReferenceNode).typeName);
   }
+  return tch.getTypeAtLocation(node);
+};
+
+const getType = (
+  node: ts.Node | ts.Type,
+  tch: ts.TypeChecker
+): TypeSymbol | null => {
+  const type: ts.Type =
+    (node as any).kind !== undefined
+      ? getTypeFromNode(node as ts.Node, tch)
+      : (node as ts.Type);
   let result: TypeSymbol | null = null;
   if (type.aliasSymbol && type.aliasSymbol.declarations) {
     result = getTypeFromSymbol(type.aliasSymbol);
@@ -31,14 +39,23 @@ const getType = (node: ts.Node, tch: ts.TypeChecker): TypeSymbol | null => {
   if (!result) {
     return null;
   }
-  if (!(node as any).typeArguments && !(type as any).intrinsicName) {
+  if (
+    !(node as any).typeArguments &&
+    !type.aliasTypeArguments &&
+    !(type as any).intrinsicName
+  ) {
     return result;
   }
-  result.params = ((node as any).typeArguments).map((t: ts.Node) => getType(t, tch));
+  result.params = ((node as any).typeArguments || type.aliasTypeArguments).map(
+    (t: ts.Node) => getType(t, tch)
+  );
   return result;
 };
 
-const isRPCServiceInterface = (expr: ts.ExpressionWithTypeArguments, program: ts.Program) => {
+const isRPCServiceInterface = (
+  expr: ts.ExpressionWithTypeArguments,
+  program: ts.Program
+) => {
   const tch = program.getTypeChecker();
   const symbol = tch.getSymbolAtLocation(expr.expression);
   if (!symbol) return false;
@@ -61,7 +78,10 @@ const isRPCService = (n: ts.Node, program: ts.Program): boolean => {
   });
 };
 
-const hasSideEffects = (m: ts.MethodSignature, program: ts.Program): boolean => {
+const hasSideEffects = (
+  m: ts.MethodSignature,
+  program: ts.Program
+): boolean => {
   const type = m.type as any;
   const tch = program.getTypeChecker();
   if (!type.typeArguments || type.typeArguments.length !== 1) return true;
@@ -71,9 +91,13 @@ const hasSideEffects = (m: ts.MethodSignature, program: ts.Program): boolean => 
 
   const voidType = arg && arg.intrinsicName === 'void';
   let sideEffect = voidType;
-  if (methodType.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodSignature) {
-    const valueDeclaration = methodType.symbol.valueDeclaration as ts.MethodSignature;
-    const typeParams = ((valueDeclaration.typeParameters || []) as any[]).map(p => getType(p, tch))
+  if (
+    methodType.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodSignature
+  ) {
+    const valueDeclaration = methodType.symbol
+      .valueDeclaration as ts.MethodSignature;
+    const typeParams = ((valueDeclaration.typeParameters || []) as any[])
+      .map(p => getType(p, tch))
       .filter(t => t !== null);
     if (typeParams.length > 1) {
       // TODO(mgechev): report an error
@@ -87,19 +111,24 @@ const hasSideEffects = (m: ts.MethodSignature, program: ts.Program): boolean => 
   return sideEffect;
 };
 
-const parseArguments = (m: ts.MethodSignature, program: ts.Program): Argument[] => {
+const parseArguments = (
+  m: ts.MethodSignature,
+  program: ts.Program
+): Argument[] => {
   const tch = program.getTypeChecker();
-  return m.parameters.map(p => {
-    const type = getType(p, tch);
-    if (type === null) {
-      // TODO(mgechev): report error for unresolvable type
-      return null;
-    }
-    return {
-      type,
-      name: p.name.getText()
-    };
-  }).filter(arg => arg !== null) as Argument[];
+  return m.parameters
+    .map(p => {
+      const type = getType(p, tch);
+      if (type === null) {
+        // TODO(mgechev): report error for unresolvable type
+        return null;
+      }
+      return {
+        type,
+        name: p.name.getText()
+      };
+    })
+    .filter(arg => arg !== null) as Argument[];
 };
 
 const parseMethod = (n: ts.TypeElement, program: ts.Program): Method | null => {
@@ -122,8 +151,13 @@ const parseMethod = (n: ts.TypeElement, program: ts.Program): Method | null => {
   };
 };
 
-const parseMethods = (n: ts.InterfaceDeclaration, program: ts.Program): Method[] => {
-  return n.members.map(m => parseMethod(m, program)).filter(m => m !== null) as Method[];
+const parseMethods = (
+  n: ts.InterfaceDeclaration,
+  program: ts.Program
+): Method[] => {
+  return n.members
+    .map(m => parseMethod(m, program))
+    .filter(m => m !== null) as Method[];
 };
 
 const parseService = (n: ts.InterfaceDeclaration, program: ts.Program) => {
