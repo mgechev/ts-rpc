@@ -160,8 +160,12 @@ const parseMethods = (
     .filter(m => m !== null) as Method[];
 };
 
-const parseService = (n: ts.InterfaceDeclaration, program: ts.Program) => {
+const parseService = (n: ts.InterfaceDeclaration, program: ts.Program): Service | null => {
   const name = n.name.getText();
+  if (n.typeParameters && n.typeParameters.length) {
+    // TODO(mgechev): warn that TS-RTC does not support type params yet
+    return null;
+  }
   return {
     name,
     methods: parseMethods(n, program)
@@ -172,7 +176,10 @@ const parseFile = (source: ts.SourceFile, program: ts.Program): Service[] => {
   const result: Service[] = [];
   source.forEachChild(c => {
     if (!isRPCService(c, program)) return;
-    result.push(parseService(c as ts.InterfaceDeclaration, program));
+    const service = parseService(c as ts.InterfaceDeclaration, program);
+    if (service) {
+      result.push(service);
+    }
   });
   return result;
 };

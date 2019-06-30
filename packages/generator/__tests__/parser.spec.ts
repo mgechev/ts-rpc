@@ -258,4 +258,36 @@ describe('parser', () => {
     expect(params[0].params[1].name).toBe('FooBar');
     expect(params[0].params[1].path).toBe('/foo.ts');
   });
+
+  it('should not allow generic services', () => {
+    const program = createMemoryProgram(
+      new Map([
+        tsrpc,
+        [
+          '/bar.ts',
+          `
+          export type Foo<T> = T | T[];
+          export type Bar<T, R> = T | R[];
+          `
+        ],
+        [
+          '/foo.ts',
+          `
+            import {Service} from 'ts-rpc';
+            import {Foo, Bar} from './bar';
+
+            interface Qux {}
+            interface FooBar {}
+
+            interface Human {}
+            interface RPC<T> extends Service {
+              foo<Mutate>(a: Foo<Bar<Qux, FooBar>>, b: foo): Promise<void>;
+            }
+          `
+        ]
+      ])
+    );
+    const result = parse(program);
+    expect(result.length).toBe(0);
+  });
 });
