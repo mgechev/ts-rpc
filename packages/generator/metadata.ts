@@ -1,6 +1,7 @@
 export interface TypeSymbol {
   name: string;
   path: string;
+  params?: [];
 }
 
 export interface Argument {

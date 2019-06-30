@@ -2,28 +2,47 @@ import * as ts from 'typescript';
 
 import { Service, Method, Argument, TypeSymbol } from './metadata';
 
-const findSymbol = (node: ts.Node, tch: ts.TypeChecker): TypeSymbol | null => {
-  const type = tch.getTypeAtLocation(node);
+const getTypeFromSymbol = (s: ts.Symbol) => {
+  return {
+    name: s.name,
+    path: s.declarations[0].getSourceFile().fileName
+  };
+};
+
+const getType = (node: ts.Node, tch: ts.TypeChecker): TypeSymbol | null => {
+  let type: ts.Type;
+  if (ts.isTypeReferenceNode(node)) {
+    type = tch.getTypeAtLocation((node as ts.TypeReferenceNode).typeName);
+  } else {
+    type = tch.getTypeAtLocation(node);
+  }
+  let result: TypeSymbol | null = null;
+  if (type.aliasSymbol && type.aliasSymbol.declarations) {
+    result = getTypeFromSymbol(type.aliasSymbol);
+  } else if (type.symbol) {
+    result = getTypeFromSymbol(type.symbol);
+  }
   if (type && (type as any).intrinsicName) {
     return {
       name: (type as any).intrinsicName,
       path: ''
     };
   }
-  if (type && type.symbol) {
-    return {
-      name: type.symbol.name,
-      path: type.symbol.declarations[0].getSourceFile().fileName
-    };
+  if (!result) {
+    return null;
   }
-  return null;
+  if (!(node as any).typeArguments && !(type as any).intrinsicName) {
+    return result;
+  }
+  result.params = ((node as any).typeArguments).map((t: ts.Node) => getType(t, tch));
+  return result;
 };
 
 const isRPCServiceInterface = (expr: ts.ExpressionWithTypeArguments, program: ts.Program) => {
   const tch = program.getTypeChecker();
   const symbol = tch.getSymbolAtLocation(expr.expression);
   if (!symbol) return false;
-  const type = findSymbol(expr, tch);
+  const type = getType(expr, tch);
   if (!type) return false;
   return type.name === 'Service' && type.path.includes('node_modules/ts-rpc');
 };
@@ -46,17 +65,15 @@ const hasSideEffects = (m: ts.MethodSignature, program: ts.Program): boolean => 
   const type = m.type as any;
   const tch = program.getTypeChecker();
   if (!type.typeArguments || type.typeArguments.length !== 1) return true;
-  const t = findSymbol(type.typeArguments[0], tch);
+  const t = getType(type.typeArguments[0], tch);
   const arg = tch.getTypeAtLocation(type.typeArguments[0]) as any;
-  // TODO(mgechev): report as an error, every method should be async.
-  if (!type || !type.typeName || type.typeName.text !== 'Promise') return true;
   const methodType = tch.getTypeAtLocation(m);
 
   const voidType = arg && arg.intrinsicName === 'void';
   let sideEffect = voidType;
   if (methodType.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodSignature) {
     const valueDeclaration = methodType.symbol.valueDeclaration as ts.MethodSignature;
-    const typeParams = ((valueDeclaration.typeParameters || []) as any[]).map(p => findSymbol(p, tch))
+    const typeParams = ((valueDeclaration.typeParameters || []) as any[]).map(p => getType(p, tch))
       .filter(t => t !== null);
     if (typeParams.length > 1) {
       // TODO(mgechev): report an error
@@ -73,7 +90,7 @@ const hasSideEffects = (m: ts.MethodSignature, program: ts.Program): boolean => 
 const parseArguments = (m: ts.MethodSignature, program: ts.Program): Argument[] => {
   const tch = program.getTypeChecker();
   return m.parameters.map(p => {
-    const type = findSymbol(p, tch);
+    const type = getType(p, tch);
     if (type === null) {
       // TODO(mgechev): report error for unresolvable type
       return null;
@@ -91,8 +108,11 @@ const parseMethod = (n: ts.TypeElement, program: ts.Program): Method | null => {
   }
   const method = n as ts.MethodSignature;
   const type = method.type as any;
-  if (!type.typeArguments || type.typeArguments.length !== 1) return null;
-  const returnType = findSymbol(type.typeArguments[0], program.getTypeChecker());
+  if (!type || !type.typeName || type.typeName.text !== 'Promise') {
+    // TODO(mgechev): report as an error, every method should be async.
+    return null;
+  }
+  const returnType = getType(type.typeArguments[0], program.getTypeChecker());
   if (!returnType) return null;
   return {
     name: method.name.getText(),
