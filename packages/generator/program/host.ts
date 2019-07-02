@@ -7,15 +7,18 @@ const defaultLibPath = dirname(require.resolve('typescript'));
 const defaultLibLocation = join(defaultLibPath, defaultLibName);
 
 const defaultLib = readFileSync(defaultLibLocation).toString();
+const libs = new Map<string, string>();
+
+readdirSync(defaultLibPath).forEach(path => {
+  path = join(defaultLibPath, path);
+  if (statSync(path).isFile()) {
+    libs.set(path, readFileSync(path).toString())
+  }
+});
+libs.set(defaultLibName, defaultLib);
 
 export const createMemoryHost = (files: Map<string, string>) => {
-  readdirSync(defaultLibPath).forEach(path => {
-    path = join(defaultLibPath, path);
-    if (statSync(path).isFile()) {
-      files.set(path, readFileSync(path).toString())
-    }
-  });
-  files.set(defaultLibName, defaultLib);
+  libs.forEach((value: string, key: string) => files.set(key, value));
 
   const host: ts.CompilerHost = {
     getSourceFile(fileName: string, languageVersion: ts.ScriptTarget): ts.SourceFile | undefined {

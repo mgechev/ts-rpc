@@ -6,8 +6,7 @@ import { existsSync, readFileSync } from 'fs';
 
 export const createMemoryProgram = (files: Map<string, string>) => {
   const options: ts.CompilerOptions = {};
-  const program = ts.createProgram([...files.keys()], options, createMemoryHost(files));
-  return program;
+  return ts.createProgram([...files.keys()], options, createMemoryHost(files));
 };
 
 export const createProgram = (tsconfigFile: string) => {
