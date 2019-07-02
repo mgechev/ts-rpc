@@ -22,7 +22,7 @@ describe('emitType', () => {
     expect(
       emitType(imports, {
         name: 'Foo',
-        path: 'path.ts'
+        path: '/path.ts'
       })
     ).toEqual('Foo');
   });
@@ -31,23 +31,23 @@ describe('emitType', () => {
     expect(
       emitType(imports, {
         name: 'Foo',
-        path: 'foo.ts',
+        path: '/foo.ts',
         params: [
           {
             name: 'Qux',
-            path: 'qux.ts'
+            path: '/qux.ts'
           },
           {
             name: 'Bar',
-            path: 'bar.ts',
+            path: '/bar.ts',
             params: [
               {
                 name: 'Foobar',
-                path: 'foobar.ts'
+                path: '/foobar.ts'
               },
               {
                 name: 'Qux',
-                path: 'qux.ts'
+                path: '/qux.ts'
               }
             ]
           }
@@ -60,19 +60,19 @@ describe('emitType', () => {
     expect(
       emitType(imports, {
         name: 'Foo',
-        path: 'foo.ts',
+        path: '/foo.ts',
         params: [
           {
             name: 'Qux',
-            path: 'qux.ts'
+            path: '/qux.ts'
           },
           {
             name: 'Qux',
-            path: 'qux1.ts',
+            path: '/qux1.ts',
             params: [
               {
                 name: 'Qux',
-                path: 'qux2.ts'
+                path: '/qux2.ts'
               }
             ]
           }
@@ -84,7 +84,7 @@ describe('emitType', () => {
 
 describe('emitter', () => {
   it('should serialize single service', () => {
-    const result = emit('', [
+    const result = emit('/', [
       {
         name: 'Service',
         methods: [
@@ -93,7 +93,7 @@ describe('emitter', () => {
             arguments: [],
             returnType: {
               name: 'Foo',
-              path: 'foo.ts'
+              path: '/foo.ts'
             },
             sideEffect: true
           }
@@ -102,7 +102,7 @@ describe('emitter', () => {
     ]);
 
     expect(result).toBe(
-      `import {Foo} from 'foo.ts';
+      `import {Foo} from './foo';
 
 export class Service {
   foo(): Promise<Foo> {
@@ -113,7 +113,7 @@ export class Service {
   });
 
   it('should serialize single service with multiple methods and arguments', () => {
-    const result = emit('', [
+    const result = emit('/', [
       {
         name: 'Service',
         methods: [
@@ -132,7 +132,7 @@ export class Service {
                     },
                     {
                       name: 'Bar',
-                      path: 'bar.ts'
+                      path: '/bar.ts'
                     }
                   ]
                 }
@@ -140,7 +140,7 @@ export class Service {
             ],
             returnType: {
               name: 'Foo',
-              path: 'foo.ts'
+              path: '/foo.ts'
             },
             sideEffect: true
           },
@@ -151,20 +151,20 @@ export class Service {
                 name: 'qux',
                 type: {
                   name: 'Qux',
-                  path: 'foo2.ts'
+                  path: '/foo2.ts'
                 }
               },
               {
                 name: 'foo',
                 type: {
                   name: 'Foo',
-                  path: 'foo2.ts'
+                  path: '/foo2.ts'
                 }
               }
             ],
             returnType: {
               name: 'Bar',
-              path: 'bar.ts'
+              path: '/bar.ts'
             },
             sideEffect: true
           }
@@ -173,9 +173,9 @@ export class Service {
     ]);
 
     expect(result).toBe(
-      `import {Bar} from 'bar.ts';
-import {Foo} from 'foo.ts';
-import {Qux, Foo as Foo1} from 'foo2.ts';
+      `import {Bar} from './bar';
+import {Foo} from './foo';
+import {Qux, Foo as Foo1} from './foo2';
 
 export class Service {
   foo(map: Map<string, Bar>): Promise<Foo> {
@@ -186,5 +186,38 @@ export class Service {
   }
 }`
     );
+  });
+
+  it('should handle relative paths', () => {
+    const result = emit('/src/dist', [
+      {
+        name: 'Service',
+        methods: [
+          {
+            name: 'foo',
+            arguments: [],
+            returnType: {
+              name: 'Foo',
+              path: '/src/interfaces/foo.ts'
+            },
+            sideEffect: true
+          }
+        ]
+      }
+    ]);
+
+    expect(result).toBe(
+      `import {Foo} from '../interfaces/foo';
+
+export class Service {
+  foo(): Promise<Foo> {
+    //
+  }
+}`
+    );
+  });
+
+  it('should throw on non-absolute path', () => {
+    expect(() => emit('../', [])).toThrow();
   });
 });

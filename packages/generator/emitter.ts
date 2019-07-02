@@ -1,4 +1,5 @@
 import { Service, Method, Argument, TypeSymbol } from './metadata';
+import { relative, isAbsolute } from 'path';
 
 type SymbolName = string;
 type ImportPath = string;
@@ -85,7 +86,16 @@ ${service.methods.map(emitMethod.bind(null, imports)).join('\n')}
 }`;
 };
 
-const serializeImports = (imports: ImportMap) => {
+const getRelativePath = (currentPath: string, path: string) => {
+  path = path.replace(/\.ts$/, '');
+  const result = relative(currentPath, path);
+  if (!result.startsWith('.')) {
+    return `./${result}`;
+  }
+  return result;
+};
+
+const serializeImports = (currentPath: string, imports: ImportMap) => {
   return [...imports.imports]
     .map(([path, symbols]) => {
       return (
@@ -102,13 +112,16 @@ const serializeImports = (imports: ImportMap) => {
             return `${s} as ${name}`;
           })
           .join(', ') +
-        `} from '${path}';`
+        `} from '${getRelativePath(currentPath, path)}';`
       );
     })
     .join('\n');
 };
 
 export const emit = (path: string, services: Service[]): string => {
+  if (!isAbsolute(path)) {
+    throw new Error('The specified output path should be absolute');
+  }
   const imports: ImportMap = {
     symbols: new Map(),
     imports: new Map()
@@ -121,5 +134,5 @@ export const emit = (path: string, services: Service[]): string => {
     });
   });
   const emittedServices = services.map(emitService.bind(null, imports)).join('\n\n');
-  return serializeImports(imports) + '\n\n' + emittedServices;
+  return serializeImports(path, imports) + '\n\n' + emittedServices;
 };
