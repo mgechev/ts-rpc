@@ -2,6 +2,8 @@ import * as ts from 'typescript';
 
 import { Service, Method, Argument, TypeSymbol } from './metadata';
 
+type Result = { services: Service[]; diagnostic: ts.Diagnostic[] };
+
 const getTypeFromSymbol = (s: ts.Symbol) => {
   return {
     name: s.name,
@@ -16,9 +18,14 @@ const getTypeFromNode = (node: ts.Node, tch: ts.TypeChecker) => {
   return tch.getTypeAtLocation(node);
 };
 
-const getType = (node: ts.Node | ts.Type, tch: ts.TypeChecker): TypeSymbol | null => {
+const getType = (
+  node: ts.Node | ts.Type,
+  tch: ts.TypeChecker
+): TypeSymbol | null => {
   const type: ts.Type =
-    (node as any).kind !== undefined ? getTypeFromNode(node as ts.Node, tch) : (node as ts.Type);
+    (node as any).kind !== undefined
+      ? getTypeFromNode(node as ts.Node, tch)
+      : (node as ts.Type);
   let result: TypeSymbol | null = null;
   if (type.aliasSymbol && type.aliasSymbol.declarations) {
     result = getTypeFromSymbol(type.aliasSymbol);
@@ -34,16 +41,23 @@ const getType = (node: ts.Node | ts.Type, tch: ts.TypeChecker): TypeSymbol | nul
   if (!result) {
     return null;
   }
-  if (!(node as any).typeArguments && !type.aliasTypeArguments && !(type as any).intrinsicName) {
+  if (
+    !(node as any).typeArguments &&
+    !type.aliasTypeArguments &&
+    !(type as any).intrinsicName
+  ) {
     return result;
   }
-  result.params = ((node as any).typeArguments || type.aliasTypeArguments).map((t: ts.Node) =>
-    getType(t, tch)
+  result.params = ((node as any).typeArguments || type.aliasTypeArguments).map(
+    (t: ts.Node) => getType(t, tch)
   );
   return result;
 };
 
-const isRPCServiceInterface = (expr: ts.ExpressionWithTypeArguments, program: ts.Program) => {
+const isRPCServiceInterface = (
+  expr: ts.ExpressionWithTypeArguments,
+  program: ts.Program
+) => {
   const tch = program.getTypeChecker();
   const symbol = tch.getSymbolAtLocation(expr.expression);
   if (!symbol) return false;
@@ -66,40 +80,72 @@ const isRPCService = (n: ts.Node, program: ts.Program): boolean => {
   });
 };
 
-const hasSideEffects = (m: ts.MethodSignature, program: ts.Program): boolean => {
+const hasSideEffects = (
+  m: ts.MethodSignature,
+  program: ts.Program,
+  diagnostic: ts.Diagnostic[]
+): boolean => {
   const type = m.type as any;
   const tch = program.getTypeChecker();
   if (!type.typeArguments || type.typeArguments.length !== 1) return true;
-  const t = getType(type.typeArguments[0], tch);
   const arg = tch.getTypeAtLocation(type.typeArguments[0]) as any;
   const methodType = tch.getTypeAtLocation(m);
 
   const voidType = arg && arg.intrinsicName === 'void';
   let sideEffect = voidType;
-  if (methodType.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodSignature) {
-    const valueDeclaration = methodType.symbol.valueDeclaration as ts.MethodSignature;
+  if (
+    methodType.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodSignature
+  ) {
+    const valueDeclaration = methodType.symbol
+      .valueDeclaration as ts.MethodSignature;
     const typeParams = ((valueDeclaration.typeParameters || []) as any[])
       .map(p => getType(p, tch))
       .filter(t => t !== null);
     if (typeParams.length > 1) {
-      // TODO(mgechev): report an error
+      diagnostic.push({
+        messageText:
+          'Methods of RPC services cannot specify generic parameters. They can only indicate if the method is readonly',
+        code: 55555,
+        category: ts.DiagnosticCategory.Error,
+        file: valueDeclaration.getSourceFile(),
+        start: valueDeclaration.getStart(),
+        length: valueDeclaration.getEnd() - valueDeclaration.getStart()
+      });
     }
     sideEffect = typeParams.length === 0 || typeParams[0]!.name !== 'Read';
   }
   if (voidType && !sideEffect) {
-    // TODO(mgechev): report an error
+    diagnostic.push({
+      messageText: 'Methods of type void cannot be declared as side-effect free',
+      code: 55555,
+      category: ts.DiagnosticCategory.Error,
+      file: m.getSourceFile(),
+      start: m.getStart(),
+      length: m.getEnd() - m.getStart()
+    });
     sideEffect = true;
   }
   return sideEffect;
 };
 
-const parseArguments = (m: ts.MethodSignature, program: ts.Program): Argument[] => {
+const parseArguments = (
+  m: ts.MethodSignature,
+  program: ts.Program,
+  diagnostic: ts.Diagnostic[]
+): Argument[] => {
   const tch = program.getTypeChecker();
   return m.parameters
     .map(p => {
       const type = getType(p, tch);
       if (type === null) {
-        // TODO(mgechev): report error for unresolvable type
+        diagnostic.push({
+          messageText: 'Cannot resolve the argument type',
+          code: 55555,
+          category: ts.DiagnosticCategory.Error,
+          file: m.getSourceFile(),
+          start: m.getStart(),
+          length: m.getEnd() - m.getStart()
+        });
         return null;
       }
       return {
@@ -110,14 +156,25 @@ const parseArguments = (m: ts.MethodSignature, program: ts.Program): Argument[] 
     .filter(arg => arg !== null) as Argument[];
 };
 
-const parseMethod = (n: ts.TypeElement, program: ts.Program): Method | null => {
+const parseMethod = (
+  n: ts.TypeElement,
+  program: ts.Program,
+  diagnostic: ts.Diagnostic[]
+): Method | null => {
   if (n.kind !== ts.SyntaxKind.MethodSignature) {
     return null;
   }
   const method = n as ts.MethodSignature;
   const type = method.type as any;
   if (!type || !type.typeName || type.typeName.text !== 'Promise') {
-    // TODO(mgechev): report as an error, every method should be async.
+    diagnostic.push({
+      messageText: 'All methods of a RPC service must return a Promise',
+      code: 55555,
+      category: ts.DiagnosticCategory.Error,
+      file: n.getSourceFile(),
+      start: n.getStart(),
+      length: n.getEnd() - n.getStart()
+    });
     return null;
   }
   const returnType = getType(type.typeArguments[0], program.getTypeChecker());
@@ -125,32 +182,57 @@ const parseMethod = (n: ts.TypeElement, program: ts.Program): Method | null => {
   return {
     name: method.name.getText(),
     returnType,
-    sideEffect: hasSideEffects(method, program),
-    arguments: parseArguments(method, program)
+    sideEffect: hasSideEffects(method, program, diagnostic),
+    arguments: parseArguments(method, program, diagnostic)
   };
 };
 
-const parseMethods = (n: ts.InterfaceDeclaration, program: ts.Program): Method[] => {
-  return n.members.map(m => parseMethod(m, program)).filter(m => m !== null) as Method[];
+const parseMethods = (
+  n: ts.InterfaceDeclaration,
+  program: ts.Program,
+  diagnostic: ts.Diagnostic[]
+): Method[] => {
+  return n.members
+    .map(m => parseMethod(m, program, diagnostic))
+    .filter(m => m !== null) as Method[];
 };
 
-const parseService = (n: ts.InterfaceDeclaration, program: ts.Program): Service | null => {
+const parseService = (
+  n: ts.InterfaceDeclaration,
+  program: ts.Program,
+  diagnostic: ts.Diagnostic[]
+): Service | null => {
   const name = n.name.getText();
   if (n.typeParameters && n.typeParameters.length) {
-    // TODO(mgechev): warn that TS-RTC does not support type params yet
+    diagnostic.push({
+      category: ts.DiagnosticCategory.Error,
+      code: 55555,
+      start: n.typeParameters.pos,
+      length: n.typeParameters.length,
+      messageText: 'Cannot declare type parameters of a RPC service',
+      file: n.getSourceFile()
+    });
     return null;
   }
   return {
     name,
-    methods: parseMethods(n, program)
+    methods: parseMethods(n, program, diagnostic)
   } as Service;
 };
 
-const parseFile = (source: ts.SourceFile, program: ts.Program): Service[] => {
+const parseFile = (
+  source: ts.SourceFile,
+  program: ts.Program,
+  diagnostic: ts.Diagnostic[]
+): Service[] => {
   const result: Service[] = [];
   source.forEachChild(c => {
     if (!isRPCService(c, program)) return;
-    const service = parseService(c as ts.InterfaceDeclaration, program);
+    const service = parseService(
+      c as ts.InterfaceDeclaration,
+      program,
+      diagnostic
+    );
     if (service) {
       result.push(service);
     }
@@ -158,9 +240,14 @@ const parseFile = (source: ts.SourceFile, program: ts.Program): Service[] => {
   return result;
 };
 
-export const parse = (program: ts.Program) => {
-  return ([] as Service[]).concat.apply(
+export const parse = (program: ts.Program): Result => {
+  const diagnostic: ts.Diagnostic[] = [...program.getGlobalDiagnostics()];
+  const services = ([] as Service[]).concat.apply(
     [],
-    program.getSourceFiles().map(sf => parseFile(sf, program))
+    program.getSourceFiles().map(sf => parseFile(sf, program, diagnostic))
   );
+  return {
+    services,
+    diagnostic
+  };
 };

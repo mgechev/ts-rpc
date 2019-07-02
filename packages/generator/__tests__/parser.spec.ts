@@ -38,7 +38,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const result = parse(program);
+    const {services: result} = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('Bar');
   });
@@ -57,7 +57,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const result = parse(program);
+    const {services: result} = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('Bar');
   });
@@ -79,7 +79,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const result = parse(program);
+    const {services: result} = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('Bar');
     expect(result[0].methods[0].name).toBe('foo');
@@ -105,7 +105,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const result = parse(program);
+    const {services: result} = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('Bar');
     expect(result[0].methods[0].returnType.name).toBe('void');
@@ -133,7 +133,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const result = parse(program);
+    const { services: result } = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('Bar');
     expect(result[0].methods[0].returnType.name).toBe('void');
@@ -162,7 +162,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const result = parse(program);
+    const { services: result } = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('Bar');
     expect(result[0].methods[0].arguments[0].name).toBe('a');
@@ -198,7 +198,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const result = parse(program);
+    const { services: result } = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('RPC');
     const { returnType } = result[0].methods[0];
@@ -243,7 +243,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const result = parse(program);
+    const { services: result } = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('RPC');
     const { returnType } = result[0].methods[0];
@@ -287,7 +287,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const result = parse(program);
+    const { services: result } = parse(program);
     expect(result.length).toBe(0);
   });
 });
