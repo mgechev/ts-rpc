@@ -169,7 +169,7 @@ const getImportPath = (currentPath: string, path: string) => {
 
 const serializeImports = (currentPath: string, table: SymbolTable) => {
   return [...table.imports]
-    .filter(([path]) => path !== '')
+    .filter(([path]) => path !== '' && path.indexOf('typescript/lib') < 0)
     .map(([path, symbols]) => {
       return (
         'import {' +
