@@ -122,9 +122,9 @@ const emitArgument = (imports: SymbolTable, arg: Argument) => {
 };
 
 const emitMethodBody = (table: SymbolTable, method: Method) => {
-  return `return this.c<${emitType(table, method.returnType)}>('${method.name}'${
-    method.arguments.length ? ', ' : ''
-  }${method.arguments.map(a => a.name).join(', ')});`;
+  return `return this.c<${emitType(table, method.returnType)}>(${method.sideEffect}, '${
+    method.name
+  }'${method.arguments.length ? ', ' : ''}${method.arguments.map(a => a.name).join(', ')});`;
 };
 
 const emitMethod = (table: SymbolTable, method: Method) => {
@@ -142,7 +142,7 @@ const emitMethod = (table: SymbolTable, method: Method) => {
 const emitService = (imports: SymbolTable, service: Service) => {
   return `@Injectable()
 export class ${service.name} implements ${imports.getSymbolName(service.name, service.path)} {
-  private c: <T>(method: string, ...args: any[]) => Promise<T>;
+  private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, '${service.name}');
   }

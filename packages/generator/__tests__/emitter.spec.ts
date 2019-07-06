@@ -93,7 +93,7 @@ describe('emitter', () => {
               name: 'Foo',
               path: '/foo.ts'
             },
-            sideEffect: true
+            sideEffect: false
           }
         ]
       }
@@ -107,12 +107,12 @@ import {Foo} from './foo';
 
 @Injectable()
 export class Service implements Service1 {
-  private c: <T>(method: string, ...args: any[]) => Promise<T>;
+  private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }
   foo(): Promise<Foo> {
-    return this.c<Foo>('foo');
+    return this.c<Foo>(false, 'foo');
   }
 }`
     );
@@ -189,15 +189,15 @@ import {Qux, Foo as Foo1} from './foo2';
 
 @Injectable()
 export class Service implements Service1 {
-  private c: <T>(method: string, ...args: any[]) => Promise<T>;
+  private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }
   foo(map: Map<string, Bar>): Promise<Foo> {
-    return this.c<Foo>('foo', map);
+    return this.c<Foo>(true, 'foo', map);
   }
   bar(qux: Qux, foo: Foo1): Promise<Bar> {
-    return this.c<Bar>('bar', qux, foo);
+    return this.c<Bar>(true, 'bar', qux, foo);
   }
 }`
     );
@@ -230,12 +230,12 @@ import {Foo} from '../interfaces/foo';
 
 @Injectable()
 export class Service implements Service1 {
-  private c: <T>(method: string, ...args: any[]) => Promise<T>;
+  private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }
   foo(): Promise<Foo> {
-    return this.c<Foo>('foo');
+    return this.c<Foo>(true, 'foo');
   }
 }`
     );
@@ -288,12 +288,12 @@ import {Inject as Inject1} from '../interfaces/foo';
 
 @Injectable()
 export class Service implements Service1 {
-  private c: <T>(method: string, ...args: any[]) => Promise<T>;
+  private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }
   foo(a: Injectable1, b: grpcUnary1): Promise<Inject1> {
-    return this.c<Inject1>('foo', a, b);
+    return this.c<Inject1>(true, 'foo', a, b);
   }
 }`
     );
@@ -338,12 +338,12 @@ import {Foo} from '../interfaces/foo';
 
 @Injectable()
 export class Service implements Service1 {
-  private c: <T>(method: string, ...args: any[]) => Promise<T>;
+  private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }
   foo(): Promise<Foo<Bar, Qux>> {
-    return this.c<Foo<Bar, Qux>>('foo');
+    return this.c<Foo<Bar, Qux>>(true, 'foo');
   }
 }`
     );
