@@ -18,5 +18,6 @@ export interface Method {
 
 export interface Service {
   name: string;
+  path: string;
   methods: Method[];
 }

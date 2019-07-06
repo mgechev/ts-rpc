@@ -4,6 +4,81 @@ import { relative, isAbsolute } from 'path';
 type SymbolName = string;
 type ImportPath = string;
 
+const builtIns = [
+  {
+    name: 'Injectable',
+    path: '@angular/core'
+  },
+  {
+    name: 'Inject',
+    path: '@angular/core'
+  },
+  {
+    name: 'grpcUnary',
+    path: 'ts-rpc'
+  },
+  {
+    name: 'FetchFn',
+    path: 'ts-rpc'
+  },
+  {
+    name: 'Fetch',
+    path: 'ts-rpc'
+  }
+];
+
+export class SymbolTable {
+  private map: ImportMap;
+
+  constructor(services: Service[]) {
+    this.map = {
+      symbols: new Map(),
+      imports: new Map()
+    };
+    if (!services.length) return;
+    services.forEach(s => this.addSymbol(s.name, ''));
+    services.forEach(s => this.addSymbol(s.name, s.path));
+    builtIns.forEach(s => this.addSymbol(s.name, s.path));
+  }
+
+  get imports() {
+    return this.map.imports;
+  }
+
+  addSymbol(name: string, path: string) {
+    if (!this.map.symbols.has(name)) {
+      this.map.symbols.set(name, {
+        total: -1,
+        importName: new Map()
+      });
+    }
+    const current = this.map.symbols.get(name)!;
+    if (!current.importName.has(path)) {
+      current.total += 1;
+      current.importName.set(path, current.total);
+    }
+    if (!this.map.imports.has(path)) {
+      this.map.imports.set(path, new Set());
+    }
+    this.map.imports.get(path)!.add(name);
+  }
+
+  getSymbolName(name: string, path: string) {
+    if (!path) {
+      return name;
+    }
+    const res = this.map.symbols.get(name);
+    if (!res) {
+      throw new Error(`Cannot find the symbol ${name} in the imports map`);
+    }
+    const num = res.importName.get(path);
+    if (num === 0) {
+      return name;
+    }
+    return `${name}${num}`;
+  }
+}
+
 export type ImportMap = {
   symbols: Map<
     SymbolName,
@@ -15,46 +90,24 @@ export type ImportMap = {
   imports: Map<ImportPath, Set<SymbolName>>;
 };
 
-const handleImport = (i: ImportMap, type: TypeSymbol) => {
-  (type.params || []).forEach(type => handleImport(i, type));
+const handleImport = (table: SymbolTable, type: TypeSymbol) => {
+  (type.params || []).forEach(type => handleImport(table, type));
 
   if (!type.path) {
     return;
   }
-  const { symbols, imports } = i;
-  if (!symbols.has(type.name)) {
-    symbols.set(type.name, {
-      total: -1,
-      importName: new Map()
-    });
-  }
-  const current = symbols.get(type.name)!;
-  if (!current.importName.has(type.path)) {
-    current.total += 1;
-    current.importName.set(type.path, current.total);
-  }
-  if (!imports.has(type.path)) {
-    imports.set(type.path, new Set());
-  }
-  imports.get(type.path)!.add(type.name);
+
+  table.addSymbol(type.name, type.path);
 };
 
-const getTypeName = (imports: ImportMap, type: TypeSymbol) => {
+const getTypeName = (table: SymbolTable, type: TypeSymbol) => {
   if (!type.path) {
     return type.name;
   }
-  const res = imports.symbols.get(type.name);
-  if (!res) {
-    throw new Error(`Cannot find the symbol ${type.name} in the imports map`);
-  }
-  const num = res.importName.get(type.path);
-  if (num === 0) {
-    return type.name;
-  }
-  return `${type.name}${num}`;
+  return table.getSymbolName(type.name, type.path);
 };
 
-export const emitType = (imports: ImportMap, type: TypeSymbol): string => {
+export const emitType = (imports: SymbolTable, type: TypeSymbol): string => {
   handleImport(imports, type);
   if (!type.params) {
     return getTypeName(imports, type);
@@ -64,7 +117,7 @@ export const emitType = (imports: ImportMap, type: TypeSymbol): string => {
     .join(', ')}>`;
 };
 
-const emitArgument = (imports: ImportMap, arg: Argument) => {
+const emitArgument = (imports: SymbolTable, arg: Argument) => {
   return `${arg.name}: ${emitType(imports, arg.type)}`;
 };
 
@@ -74,7 +127,7 @@ const emitMethodBody = (method: Method) => {
     .join(', ')});`;
 };
 
-const emitMethod = (imports: ImportMap, method: Method) => {
+const emitMethod = (imports: SymbolTable, method: Method) => {
   return `  ${method.name}(${method.arguments
     .map(emitArgument.bind(null, imports))
     .join(', ')}): ${emitType(imports, {
@@ -86,9 +139,9 @@ const emitMethod = (imports: ImportMap, method: Method) => {
   }`;
 };
 
-const emitService = (imports: ImportMap, service: Service) => {
+const emitService = (imports: SymbolTable, service: Service) => {
   return `@Injectable()
-export class ${service.name} {
+export class ${service.name} implements ${imports.getSymbolName(service.name, service.path)} {
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, '${service.name}');
   }
@@ -108,14 +161,15 @@ const getImportPath = (currentPath: string, path: string) => {
   return result;
 };
 
-const serializeImports = (currentPath: string, imports: ImportMap) => {
-  return [...imports.imports]
+const serializeImports = (currentPath: string, table: SymbolTable) => {
+  return [...table.imports]
+    .filter(([path]) => path !== '')
     .map(([path, symbols]) => {
       return (
         'import {' +
         [...symbols]
           .map(s => {
-            const name = getTypeName(imports, {
+            const name = getTypeName(table, {
               name: s,
               path
             });
@@ -131,61 +185,11 @@ const serializeImports = (currentPath: string, imports: ImportMap) => {
     .join('\n');
 };
 
-const getDefaultImportMap = (services: Service[]): ImportMap =>
-  services.length
-    ? {
-        symbols: new Map([
-          [
-            'Inject',
-            {
-              total: 0,
-              importName: new Map([['@angular/core', 0]])
-            }
-          ],
-          [
-            'Injectable',
-            {
-              total: 0,
-              importName: new Map([['@angular/core', 0]])
-            }
-          ],
-          [
-            'Fetch',
-            {
-              total: 0,
-              importName: new Map([['ts-rpc', 0]])
-            }
-          ],
-          [
-            'FetchFn',
-            {
-              total: 0,
-              importName: new Map([['ts-rpc', 0]])
-            }
-          ],
-          [
-            'grpcUnary',
-            {
-              total: 0,
-              importName: new Map([['ts-rpc', 0]])
-            }
-          ]
-        ]),
-        imports: new Map([
-          ['@angular/core', new Set(['Injectable', 'Inject'])],
-          ['ts-rpc', new Set(['Fetch', 'FetchFn', 'grpcUnary'])]
-        ])
-      }
-    : {
-        symbols: new Map(),
-        imports: new Map()
-      };
-
 export const emit = (path: string, services: Service[]): string => {
   if (!isAbsolute(path)) {
     throw new Error('The specified output path should be absolute');
   }
-  const imports = getDefaultImportMap(services);
+  const imports = new SymbolTable(services);
   services.forEach(first => {
     services.forEach(second => {
       if (second !== first && second.name === first.name) {

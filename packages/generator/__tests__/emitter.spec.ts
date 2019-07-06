@@ -1,17 +1,14 @@
-import { emitType, ImportMap, emit } from '../emitter';
+import { emitType, SymbolTable, emit } from '../emitter';
 
 describe('emitType', () => {
-  let imports: ImportMap;
+  let table: SymbolTable;
   beforeEach(() => {
-    imports = {
-      symbols: new Map(),
-      imports: new Map()
-    };
+    table = new SymbolTable([]);
   });
 
   it('should emit simple built-in types', () => {
     expect(
-      emitType(imports, {
+      emitType(table, {
         name: 'Promise',
         path: ''
       })
@@ -20,7 +17,7 @@ describe('emitType', () => {
 
   it('should emit simple types', () => {
     expect(
-      emitType(imports, {
+      emitType(table, {
         name: 'Foo',
         path: '/path.ts'
       })
@@ -29,7 +26,7 @@ describe('emitType', () => {
 
   it('should emit generic types', () => {
     expect(
-      emitType(imports, {
+      emitType(table, {
         name: 'Foo',
         path: '/foo.ts',
         params: [
@@ -58,7 +55,7 @@ describe('emitType', () => {
 
   it('should rename symbols when coming from different places', () => {
     expect(
-      emitType(imports, {
+      emitType(table, {
         name: 'Foo',
         path: '/foo.ts',
         params: [
@@ -87,6 +84,7 @@ describe('emitter', () => {
     const result = emit('/', [
       {
         name: 'Service',
+        path: '/service.ts',
         methods: [
           {
             name: 'foo',
@@ -102,12 +100,13 @@ describe('emitter', () => {
     ]);
 
     expect(result).toBe(
-      `import {Injectable, Inject} from '@angular/core';
-import {Fetch, FetchFn, grpcUnary} from 'ts-rpc';
+      `import {Service as Service1} from './service';
+import {Injectable, Inject} from '@angular/core';
+import {grpcUnary, FetchFn, Fetch} from 'ts-rpc';
 import {Foo} from './foo';
 
 @Injectable()
-export class Service {
+export class Service implements Service1 {
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }
@@ -122,6 +121,7 @@ export class Service {
     const result = emit('/', [
       {
         name: 'Service',
+        path: '/service.ts',
         methods: [
           {
             name: 'foo',
@@ -179,14 +179,15 @@ export class Service {
     ]);
 
     expect(result).toBe(
-      `import {Injectable, Inject} from '@angular/core';
-import {Fetch, FetchFn, grpcUnary} from 'ts-rpc';
+      `import {Service as Service1} from './service';
+import {Injectable, Inject} from '@angular/core';
+import {grpcUnary, FetchFn, Fetch} from 'ts-rpc';
 import {Bar} from './bar';
 import {Foo} from './foo';
 import {Qux, Foo as Foo1} from './foo2';
 
 @Injectable()
-export class Service {
+export class Service implements Service1 {
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }
@@ -204,6 +205,7 @@ export class Service {
     const result = emit('/src/dist', [
       {
         name: 'Service',
+        path: '/service.ts',
         methods: [
           {
             name: 'foo',
@@ -219,12 +221,13 @@ export class Service {
     ]);
 
     expect(result).toBe(
-      `import {Injectable, Inject} from '@angular/core';
-import {Fetch, FetchFn, grpcUnary} from 'ts-rpc';
+      `import {Service as Service1} from '../../service';
+import {Injectable, Inject} from '@angular/core';
+import {grpcUnary, FetchFn, Fetch} from 'ts-rpc';
 import {Foo} from '../interfaces/foo';
 
 @Injectable()
-export class Service {
+export class Service implements Service1 {
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }
@@ -243,6 +246,7 @@ export class Service {
     const result = emit('/src/dist', [
       {
         name: 'Service',
+        path: '/service.ts',
         methods: [
           {
             name: 'foo',
@@ -273,13 +277,14 @@ export class Service {
     ]);
 
     expect(result).toBe(
-      `import {Injectable, Inject} from '@angular/core';
-import {Fetch, FetchFn, grpcUnary} from 'ts-rpc';
+      `import {Service as Service1} from '../../service';
+import {Injectable, Inject} from '@angular/core';
+import {grpcUnary, FetchFn, Fetch} from 'ts-rpc';
 import {Injectable as Injectable1, grpcUnary as grpcUnary1} from '../../foo';
 import {Inject as Inject1} from '../interfaces/foo';
 
 @Injectable()
-export class Service {
+export class Service implements Service1 {
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }

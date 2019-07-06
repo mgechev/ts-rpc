@@ -38,7 +38,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const {services: result} = parse(program);
+    const { services: result } = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('Bar');
   });
@@ -57,7 +57,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const {services: result} = parse(program);
+    const { services: result } = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('Bar');
   });
@@ -79,7 +79,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const {services: result} = parse(program);
+    const { services: result } = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('Bar');
     expect(result[0].methods[0].name).toBe('foo');
@@ -105,7 +105,7 @@ describe('parser', () => {
         ]
       ])
     );
-    const {services: result} = parse(program);
+    const { services: result } = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('Bar');
     expect(result[0].methods[0].returnType.name).toBe('void');
@@ -135,6 +135,7 @@ describe('parser', () => {
     );
     const { services: result } = parse(program);
     expect(result.length).toBe(1);
+    expect(result[0].path).toBe('/foo.ts');
     expect(result[0].name).toBe('Bar');
     expect(result[0].methods[0].returnType.name).toBe('void');
     expect(result[0].methods[0].sideEffect).toBe(true);
@@ -165,6 +166,7 @@ describe('parser', () => {
     const { services: result } = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('Bar');
+    expect(result[0].path).toBe('/foo.ts');
     expect(result[0].methods[0].arguments[0].name).toBe('a');
     expect(result[0].methods[0].arguments[0].type.name).toBe('number');
     expect(result[0].methods[0].arguments[1].type.name).toBe('never');
@@ -201,6 +203,7 @@ describe('parser', () => {
     const { services: result } = parse(program);
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('RPC');
+    expect(result[0].path).toBe('/foo.ts');
     const { returnType } = result[0].methods[0];
     expect(returnType.name).toBe('Foo');
     expect(returnType.path).toBe('/bar.ts');

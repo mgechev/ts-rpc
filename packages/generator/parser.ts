@@ -18,14 +18,9 @@ const getTypeFromNode = (node: ts.Node, tch: ts.TypeChecker) => {
   return tch.getTypeAtLocation(node);
 };
 
-const getType = (
-  node: ts.Node | ts.Type,
-  tch: ts.TypeChecker
-): TypeSymbol | null => {
+const getType = (node: ts.Node | ts.Type, tch: ts.TypeChecker): TypeSymbol | null => {
   const type: ts.Type =
-    (node as any).kind !== undefined
-      ? getTypeFromNode(node as ts.Node, tch)
-      : (node as ts.Type);
+    (node as any).kind !== undefined ? getTypeFromNode(node as ts.Node, tch) : (node as ts.Type);
   let result: TypeSymbol | null = null;
   if (type.aliasSymbol && type.aliasSymbol.declarations) {
     result = getTypeFromSymbol(type.aliasSymbol);
@@ -41,23 +36,16 @@ const getType = (
   if (!result) {
     return null;
   }
-  if (
-    !(node as any).typeArguments &&
-    !type.aliasTypeArguments &&
-    !(type as any).intrinsicName
-  ) {
+  if (!(node as any).typeArguments && !type.aliasTypeArguments && !(type as any).intrinsicName) {
     return result;
   }
-  result.params = ((node as any).typeArguments || type.aliasTypeArguments).map(
-    (t: ts.Node) => getType(t, tch)
+  result.params = ((node as any).typeArguments || type.aliasTypeArguments).map((t: ts.Node) =>
+    getType(t, tch)
   );
   return result;
 };
 
-const isRPCServiceInterface = (
-  expr: ts.ExpressionWithTypeArguments,
-  program: ts.Program
-) => {
+const isRPCServiceInterface = (expr: ts.ExpressionWithTypeArguments, program: ts.Program) => {
   const tch = program.getTypeChecker();
   const symbol = tch.getSymbolAtLocation(expr.expression);
   if (!symbol) return false;
@@ -93,11 +81,8 @@ const hasSideEffects = (
 
   const voidType = arg && arg.intrinsicName === 'void';
   let sideEffect = voidType;
-  if (
-    methodType.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodSignature
-  ) {
-    const valueDeclaration = methodType.symbol
-      .valueDeclaration as ts.MethodSignature;
+  if (methodType.symbol.valueDeclaration.kind === ts.SyntaxKind.MethodSignature) {
+    const valueDeclaration = methodType.symbol.valueDeclaration as ts.MethodSignature;
     const typeParams = ((valueDeclaration.typeParameters || []) as any[])
       .map(p => getType(p, tch))
       .filter(t => t !== null);
@@ -216,6 +201,7 @@ const parseService = (
   }
   return {
     name,
+    path: n.getSourceFile().fileName,
     methods: parseMethods(n, program, diagnostic)
   } as Service;
 };
@@ -228,11 +214,7 @@ const parseFile = (
   const result: Service[] = [];
   source.forEachChild(c => {
     if (!isRPCService(c, program)) return;
-    const service = parseService(
-      c as ts.InterfaceDeclaration,
-      program,
-      diagnostic
-    );
+    const service = parseService(c as ts.InterfaceDeclaration, program, diagnostic);
     if (service) {
       result.push(service);
     }
