@@ -121,27 +121,28 @@ const emitArgument = (imports: SymbolTable, arg: Argument) => {
   return `${arg.name}: ${emitType(imports, arg.type)}`;
 };
 
-const emitMethodBody = (method: Method) => {
-  return `this.c('${method.name}'${method.arguments.length ? ', ' : ''}${method.arguments
-    .map(a => a.name)
-    .join(', ')});`;
+const emitMethodBody = (table: SymbolTable, method: Method) => {
+  return `return this.c<${emitType(table, method.returnType)}>('${method.name}'${
+    method.arguments.length ? ', ' : ''
+  }${method.arguments.map(a => a.name).join(', ')});`;
 };
 
-const emitMethod = (imports: SymbolTable, method: Method) => {
+const emitMethod = (table: SymbolTable, method: Method) => {
   return `  ${method.name}(${method.arguments
-    .map(emitArgument.bind(null, imports))
-    .join(', ')}): ${emitType(imports, {
+    .map(emitArgument.bind(null, table))
+    .join(', ')}): ${emitType(table, {
     name: 'Promise',
     path: '',
     params: [method.returnType]
   })} {
-    ${emitMethodBody(method)}
+    ${emitMethodBody(table, method)}
   }`;
 };
 
 const emitService = (imports: SymbolTable, service: Service) => {
   return `@Injectable()
 export class ${service.name} implements ${imports.getSymbolName(service.name, service.path)} {
+  private c: <T>(method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, '${service.name}');
   }

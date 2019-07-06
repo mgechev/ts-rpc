@@ -107,11 +107,12 @@ import {Foo} from './foo';
 
 @Injectable()
 export class Service implements Service1 {
+  private c: <T>(method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }
   foo(): Promise<Foo> {
-    this.c('foo');
+    return this.c<Foo>('foo');
   }
 }`
     );
@@ -188,14 +189,15 @@ import {Qux, Foo as Foo1} from './foo2';
 
 @Injectable()
 export class Service implements Service1 {
+  private c: <T>(method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }
   foo(map: Map<string, Bar>): Promise<Foo> {
-    this.c('foo', map);
+    return this.c<Foo>('foo', map);
   }
   bar(qux: Qux, foo: Foo1): Promise<Bar> {
-    this.c('bar', qux, foo);
+    return this.c<Bar>('bar', qux, foo);
   }
 }`
     );
@@ -228,11 +230,12 @@ import {Foo} from '../interfaces/foo';
 
 @Injectable()
 export class Service implements Service1 {
+  private c: <T>(method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }
   foo(): Promise<Foo> {
-    this.c('foo');
+    return this.c<Foo>('foo');
   }
 }`
     );
@@ -285,11 +288,62 @@ import {Inject as Inject1} from '../interfaces/foo';
 
 @Injectable()
 export class Service implements Service1 {
+  private c: <T>(method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn) {
     this.c = grpcUnary.bind(null, fetch, 'Service');
   }
   foo(a: Injectable1, b: grpcUnary1): Promise<Inject1> {
-    this.c('foo', a, b);
+    return this.c<Inject1>('foo', a, b);
+  }
+}`
+    );
+  });
+
+  it('should emit complex return type as type parameter to the client', () => {
+    const result = emit('/src/dist', [
+      {
+        name: 'Service',
+        path: '/service.ts',
+        methods: [
+          {
+            name: 'foo',
+            arguments: [],
+            returnType: {
+              name: 'Foo',
+              path: '/src/interfaces/foo.ts',
+              params: [
+                {
+                  name: 'Bar',
+                  path: '/src/interfaces/bar.ts'
+                },
+                {
+                  name: 'Qux',
+                  path: '/src/interfaces/qux.ts'
+                }
+              ]
+            },
+            sideEffect: true
+          }
+        ]
+      }
+    ]);
+
+    expect(result).toBe(
+      `import {Service as Service1} from '../../service';
+import {Injectable, Inject} from '@angular/core';
+import {grpcUnary, FetchFn, Fetch} from 'ts-rpc';
+import {Bar} from '../interfaces/bar';
+import {Qux} from '../interfaces/qux';
+import {Foo} from '../interfaces/foo';
+
+@Injectable()
+export class Service implements Service1 {
+  private c: <T>(method: string, ...args: any[]) => Promise<T>;
+  constructor(@Inject(Fetch) fetch: FetchFn) {
+    this.c = grpcUnary.bind(null, fetch, 'Service');
+  }
+  foo(): Promise<Foo<Bar, Qux>> {
+    return this.c<Foo<Bar, Qux>>('foo');
   }
 }`
     );
