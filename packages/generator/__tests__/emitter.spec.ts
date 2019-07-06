@@ -492,7 +492,7 @@ export class Qux implements Qux1 {
   }
 
 }`);
-    expect(fooPath).toBe('/foo.ts');
+    expect(fooPath).toBe('/src/dist/foo.ts');
     expect(bar).toBe(`import {Bar as Bar1} from '../../bar';
 import {Injectable, Inject} from '@angular/core';
 import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc';
@@ -505,6 +505,6 @@ export class Bar implements Bar1 {
   }
 
 }`);
-    expect(barPath).toBe('/bar.ts');
+    expect(barPath).toBe('/src/dist/bar.ts');
   });
 });

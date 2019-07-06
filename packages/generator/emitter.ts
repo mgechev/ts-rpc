@@ -1,5 +1,5 @@
 import { Service, Method, Argument, TypeSymbol } from './metadata';
-import { relative, isAbsolute } from 'path';
+import { relative, isAbsolute, basename, join } from 'path';
 
 type SymbolName = string;
 type ImportPath = string;
@@ -220,7 +220,7 @@ export const emit = (dist: string, services: Service[]): Result[] => {
   });
   return Object.keys(groups).map(path => {
     return {
-      path,
+      path: join(dist, basename(path)),
       content: emitServiceFile(dist, groups[path])
     };
   });
