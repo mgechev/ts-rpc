@@ -87,6 +87,33 @@ describe('parser', () => {
     expect(result[0].methods[0].arguments.length).toBe(0);
   });
 
+  it('should work with Arrays', () => {
+    const program = createMemoryProgram(
+      new Map([
+        tsrpc,
+        [
+          '/foo.ts',
+          `
+            import {Service} from 'ts-rpc';
+            interface Bar extends Service {
+              foo(a: number[]): Promise<void>;
+            }
+          `
+        ]
+      ])
+    );
+    const { services: result } = parse(program);
+    expect(result.length).toBe(1);
+    expect(result[0].name).toBe('Bar');
+    expect(result[0].methods[0].name).toBe('foo');
+    expect(result[0].methods[0].arguments.length).toBe(1);
+    expect(result[0].methods[0].arguments[0].type.name).toBe('Array');
+    expect(result[0].methods[0].arguments[0].type.path.endsWith('lib.es5.d.ts')).toBe(true);
+    const params = result[0].methods[0].arguments[0].type.params!;
+    expect(params.length).toBe(1);
+    expect(params[0].name).toBe('number');
+  });
+
   it("should read service's method types", () => {
     const program = createMemoryProgram(
       new Map([
@@ -316,7 +343,7 @@ describe('parser', () => {
     expect(result[0].methods[0].arguments[0]!.type.path).toBe('');
   });
 
-  fit('should support literal types with nested types', () => {
+  it('should support literal types with nested types', () => {
     const program = createMemoryProgram(
       new Map([
         tsrpc,

@@ -1,8 +1,9 @@
 import * as ts from 'typescript';
 import { dirname, resolve, isAbsolute, join } from 'path';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { parse } from './parser';
 import { emit } from './emitter';
+import { sync as mkdirpSync } from 'mkdirp';
 
 const createProgram = (tsconfig: string) => {
   const config = ts.readConfigFile(tsconfig, ts.sys.readFile);
@@ -47,5 +48,8 @@ export const generate = (tsconfig: string, out: string) => {
   if (!services.length) {
     console.warn('No service declarations found');
   }
-  console.log(emit(out, services));
+  emit(out, services).forEach(({ path, content }) => {
+    mkdirpSync(dirname(path));
+    writeFileSync(path, content);
+  });
 };

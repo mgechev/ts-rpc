@@ -56,12 +56,19 @@ const getType = (node: ts.Node | ts.Type, tch: ts.TypeChecker): TypeSymbol | nul
   if (!result) {
     return null;
   }
-  if (!(node as any).typeArguments && !type.aliasTypeArguments && !(type as any).intrinsicName) {
+  if (
+    !(node as any).typeArguments &&
+    !(type as any).typeArguments &&
+    !type.aliasTypeArguments &&
+    !(type as any).intrinsicName
+  ) {
     return result;
   }
-  result.params = ((node as any).typeArguments || type.aliasTypeArguments).map((t: ts.Node) =>
-    getType(t, tch)
-  );
+  result.params = (
+    (node as any).typeArguments ||
+    type.aliasTypeArguments ||
+    (type as any).typeArguments
+  ).map((t: ts.Node) => getType(t, tch));
   return result;
 };
 
