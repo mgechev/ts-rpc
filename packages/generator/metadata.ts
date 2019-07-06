@@ -2,6 +2,8 @@ export interface TypeSymbol {
   name: string;
   path: string;
   params?: TypeSymbol[];
+  // For type literals
+  nested?: TypeSymbol[];
 }
 
 export interface Argument {

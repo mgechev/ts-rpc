@@ -18,6 +18,17 @@ const getTypeFromNode = (node: ts.Node, tch: ts.TypeChecker) => {
   return tch.getTypeAtLocation(node);
 };
 
+const getTypeLiteralNestedTypes = (s: ts.Symbol, tch: ts.TypeChecker): TypeSymbol[] => {
+  if (!s.members) return [];
+  const result: TypeSymbol[] = [];
+  s.members.forEach(t => {
+    const type = getType(t.declarations[0], tch);
+    if (!type) return;
+    result.push(type);
+  });
+  return result;
+};
+
 const getType = (node: ts.Node | ts.Type, tch: ts.TypeChecker): TypeSymbol | null => {
   const type: ts.Type =
     (node as any).kind !== undefined ? getTypeFromNode(node as ts.Node, tch) : (node as ts.Type);
@@ -25,7 +36,16 @@ const getType = (node: ts.Node | ts.Type, tch: ts.TypeChecker): TypeSymbol | nul
   if (type.aliasSymbol && type.aliasSymbol.declarations) {
     result = getTypeFromSymbol(type.aliasSymbol);
   } else if (type.symbol) {
-    result = getTypeFromSymbol(type.symbol);
+    if (type.symbol.name === '__type') {
+      // Anonymous type literal
+      result = {
+        name: type.symbol.declarations[0].getText(),
+        path: '',
+        nested: getTypeLiteralNestedTypes(type.symbol, tch)
+      };
+    } else {
+      result = getTypeFromSymbol(type.symbol);
+    }
   }
   if (type && (type as any).intrinsicName) {
     return {

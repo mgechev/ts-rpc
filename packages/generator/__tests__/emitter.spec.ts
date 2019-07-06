@@ -348,4 +348,55 @@ export class Service implements Service1 {
 }`
     );
   });
+
+  it('should emit anonymous literal types', () => {
+    const result = emit('/src/dist', [
+      {
+        name: 'Service',
+        path: '/service.ts',
+        methods: [
+          {
+            name: 'foo',
+            arguments: [],
+            returnType: {
+              name: 'Foo',
+              path: '/src/interfaces/foo.ts',
+              params: [
+                {
+                  name: '{ id: Bar }',
+                  path: '',
+                  nested: [
+                    {
+                      name: 'Bar',
+                      path: '/src/interfaces/bar.ts'
+                    }
+                  ]
+                }
+              ]
+            },
+            sideEffect: true
+          }
+        ]
+      }
+    ]);
+
+    expect(result).toBe(
+      `import {Service as Service1} from '../../service';
+import {Injectable, Inject} from '@angular/core';
+import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc';
+import {Bar} from '../interfaces/bar';
+import {Foo} from '../interfaces/foo';
+
+@Injectable()
+export class Service implements Service1 {
+  private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
+  constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
+    this.c = grpcUnary.bind(null, fetch, host, 'Service');
+  }
+  foo(): Promise<Foo<{ id: Bar }>> {
+    return this.c<Foo<{ id: Bar }>>(true, 'foo');
+  }
+}`
+    );
+  });
 });

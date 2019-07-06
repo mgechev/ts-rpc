@@ -293,4 +293,59 @@ describe('parser', () => {
     const { services: result } = parse(program);
     expect(result.length).toBe(0);
   });
+
+  it('should support literal types', () => {
+    const program = createMemoryProgram(
+      new Map([
+        tsrpc,
+        [
+          '/foo.ts',
+          `
+            import {Service} from 'ts-rpc';
+
+            interface RPC extends Service {
+              foo<Mutate>({ id }: { id: string }): Promise<void>;
+            }
+          `
+        ]
+      ])
+    );
+    const { services: result } = parse(program);
+    expect(result.length).toBe(1);
+    expect(result[0].methods[0].arguments[0]!.type.name).toBe('{ id: string }');
+    expect(result[0].methods[0].arguments[0]!.type.path).toBe('');
+  });
+
+  fit('should support literal types with nested types', () => {
+    const program = createMemoryProgram(
+      new Map([
+        tsrpc,
+        [
+          '/bar.ts',
+          `
+          export interface Bar {}
+          `
+        ],
+        [
+          '/foo.ts',
+          `
+            import {Service} from 'ts-rpc';
+            import {Bar} from './bar';
+
+            interface RPC extends Service {
+              foo<Mutate>({ id }: { id: Bar }): Promise<void>;
+            }
+          `
+        ]
+      ])
+    );
+    const { services: result } = parse(program);
+    expect(result.length).toBe(1);
+    expect(result[0].methods[0].arguments[0]!.type.name).toBe('{ id: Bar }');
+    expect(result[0].methods[0].arguments[0]!.type.path).toBe('');
+    const nested = result[0].methods[0].arguments[0]!.type.nested!;
+    expect(nested.length).toBe(1);
+    expect(nested[0].name).toBe('Bar');
+    expect(nested[0].path).toBe('/bar.ts');
+  });
 });

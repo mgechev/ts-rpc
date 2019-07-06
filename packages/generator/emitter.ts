@@ -96,6 +96,7 @@ export type ImportMap = {
 
 const handleImport = (table: SymbolTable, type: TypeSymbol) => {
   (type.params || []).forEach(type => handleImport(table, type));
+  (type.nested || []).forEach(type => handleImport(table, type));
 
   if (!type.path) {
     return;
