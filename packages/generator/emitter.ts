@@ -191,10 +191,12 @@ const serializeImports = (currentPath: string, table: SymbolTable) => {
     .join('\n');
 };
 
-export const emit = (path: string, services: Service[]): string => {
-  if (!isAbsolute(path)) {
-    throw new Error('The specified output path should be absolute');
-  }
+export interface Result {
+  path: string;
+  content: string;
+}
+
+const emitServiceFile = (path: string, services: Service[]) => {
   const imports = new SymbolTable(services);
   services.forEach(first => {
     services.forEach(second => {
@@ -205,4 +207,21 @@ export const emit = (path: string, services: Service[]): string => {
   });
   const emittedServices = services.map(emitService.bind(null, imports)).join('\n\n');
   return serializeImports(path, imports) + '\n\n' + emittedServices;
+};
+
+export const emit = (dist: string, services: Service[]): Result[] => {
+  if (!isAbsolute(dist)) {
+    throw new Error('The specified output path should be absolute');
+  }
+  const groups: { [path: string]: Service[] } = {};
+  services.forEach(s => {
+    groups[s.path] = groups[s.path] || [];
+    groups[s.path].push(s);
+  });
+  return Object.keys(groups).map(path => {
+    return {
+      path,
+      content: emitServiceFile(dist, groups[path])
+    };
+  });
 };

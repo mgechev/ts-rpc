@@ -81,7 +81,7 @@ describe('emitType', () => {
 
 describe('emitter', () => {
   it('should serialize single service', () => {
-    const result = emit('/', [
+    const [{ content: result }] = emit('/', [
       {
         name: 'Service',
         path: '/service.ts',
@@ -119,7 +119,7 @@ export class Service implements Service1 {
   });
 
   it('should serialize single service with multiple methods and arguments', () => {
-    const result = emit('/', [
+    const [{ content: result }] = emit('/', [
       {
         name: 'Service',
         path: '/service.ts',
@@ -204,7 +204,7 @@ export class Service implements Service1 {
   });
 
   it('should handle relative paths', () => {
-    const result = emit('/src/dist', [
+    const [{ content: result }] = emit('/src/dist', [
       {
         name: 'Service',
         path: '/service.ts',
@@ -246,7 +246,7 @@ export class Service implements Service1 {
   });
 
   it('should not override ts-rpc or angular symbols', () => {
-    const result = emit('/src/dist', [
+    const [{ content: result }] = emit('/src/dist', [
       {
         name: 'Service',
         path: '/service.ts',
@@ -300,7 +300,7 @@ export class Service implements Service1 {
   });
 
   it('should emit complex return type as type parameter to the client', () => {
-    const result = emit('/src/dist', [
+    const [{ content: result }] = emit('/src/dist', [
       {
         name: 'Service',
         path: '/service.ts',
@@ -350,7 +350,7 @@ export class Service implements Service1 {
   });
 
   it('should emit anonymous literal types', () => {
-    const result = emit('/src/dist', [
+    const [{ content: result }] = emit('/src/dist', [
       {
         name: 'Service',
         path: '/service.ts',
@@ -401,7 +401,7 @@ export class Service implements Service1 {
   });
 
   it('should not emit imports to TypeScript built-in types', () => {
-    const result = emit('/src/dist', [
+    const [{ content: result }] = emit('/src/dist', [
       {
         name: 'Service',
         path: '/service.ts',
@@ -449,5 +449,22 @@ export class Service implements Service1 {
   }
 }`
     );
+  });
+});
+
+describe('emitting multiple services', () => {
+  it('should emit each service in its own file', () => {
+    const [{ content: result }] = emit('/src/dist', [
+      {
+        name: 'Foo',
+        path: '/foo.ts',
+        methods: []
+      },
+      {
+        name: 'Bar',
+        path: '/bar.ts',
+        methods: []
+      }
+    ]);
   });
 });
