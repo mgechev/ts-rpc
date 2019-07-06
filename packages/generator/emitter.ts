@@ -162,11 +162,18 @@ const getDefaultImportMap = (services: Service[]): ImportMap =>
               total: 0,
               importName: new Map([['ts-rpc', 0]])
             }
+          ],
+          [
+            'grpcUnary',
+            {
+              total: 0,
+              importName: new Map([['ts-rpc', 0]])
+            }
           ]
         ]),
         imports: new Map([
           ['@angular/core', new Set(['Injectable', 'Inject'])],
-          ['ts-rpc', new Set(['Fetch', 'FetchFn'])]
+          ['ts-rpc', new Set(['Fetch', 'FetchFn', 'grpcUnary'])]
         ])
       }
     : {

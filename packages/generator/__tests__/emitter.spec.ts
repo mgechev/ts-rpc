@@ -103,7 +103,7 @@ describe('emitter', () => {
 
     expect(result).toBe(
       `import {Injectable, Inject} from '@angular/core';
-import {Fetch, FetchFn} from 'ts-rpc';
+import {Fetch, FetchFn, grpcUnary} from 'ts-rpc';
 import {Foo} from './foo';
 
 @Injectable()
@@ -180,7 +180,7 @@ export class Service {
 
     expect(result).toBe(
       `import {Injectable, Inject} from '@angular/core';
-import {Fetch, FetchFn} from 'ts-rpc';
+import {Fetch, FetchFn, grpcUnary} from 'ts-rpc';
 import {Bar} from './bar';
 import {Foo} from './foo';
 import {Qux, Foo as Foo1} from './foo2';
@@ -220,7 +220,7 @@ export class Service {
 
     expect(result).toBe(
       `import {Injectable, Inject} from '@angular/core';
-import {Fetch, FetchFn} from 'ts-rpc';
+import {Fetch, FetchFn, grpcUnary} from 'ts-rpc';
 import {Foo} from '../interfaces/foo';
 
 @Injectable()
@@ -237,5 +237,56 @@ export class Service {
 
   it('should throw on non-absolute path', () => {
     expect(() => emit('../', [])).toThrow();
+  });
+
+  it('should not override ts-rpc or angular symbols', () => {
+    const result = emit('/src/dist', [
+      {
+        name: 'Service',
+        methods: [
+          {
+            name: 'foo',
+            arguments: [
+              {
+                name: 'a',
+                type: {
+                  name: 'Injectable',
+                  path: '/foo.ts'
+                }
+              },
+              {
+                name: 'b',
+                type: {
+                  name: 'grpcUnary',
+                  path: '/foo.ts'
+                }
+              }
+            ],
+            returnType: {
+              name: 'Inject',
+              path: '/src/interfaces/foo.ts'
+            },
+            sideEffect: true
+          }
+        ]
+      }
+    ]);
+
+    expect(result).toBe(
+      `import {Injectable, Inject} from '@angular/core';
+import {Fetch, FetchFn, grpcUnary} from 'ts-rpc';
+import {Injectable as Injectable1, grpcUnary as grpcUnary1} from '../../foo';
+import {Inject as Inject1} from '../interfaces/foo';
+
+@Injectable()
+export class Service {
+  constructor(@Inject(Fetch) fetch: FetchFn) {
+    this.c = grpcUnary.bind(null, fetch, 'Service');
+  }
+  foo(a: Injectable1, b: grpcUnary1): Promise<Inject1> {
+    this.c('foo', a, b);
+  }
+}`
+    );
   });
 });
