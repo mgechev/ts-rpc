@@ -114,7 +114,8 @@ export class Service implements Service1 {
   foo(): Promise<Foo> {
     return this.c<Foo>(false, 'foo');
   }
-}`
+}
+`
     );
   });
 
@@ -199,7 +200,8 @@ export class Service implements Service1 {
   bar(qux: Qux, foo: Foo1): Promise<Bar> {
     return this.c<Bar>(true, 'bar', qux, foo);
   }
-}`
+}
+`
     );
   });
 
@@ -237,7 +239,8 @@ export class Service implements Service1 {
   foo(): Promise<Foo> {
     return this.c<Foo>(true, 'foo');
   }
-}`
+}
+`
     );
   });
 
@@ -295,7 +298,8 @@ export class Service implements Service1 {
   foo(a: Injectable1, b: grpcUnary1): Promise<Inject1> {
     return this.c<Inject1>(true, 'foo', a, b);
   }
-}`
+}
+`
     );
   });
 
@@ -345,7 +349,8 @@ export class Service implements Service1 {
   foo(): Promise<Foo<Bar, Qux>> {
     return this.c<Foo<Bar, Qux>>(true, 'foo');
   }
-}`
+}
+`
     );
   });
 
@@ -396,7 +401,8 @@ export class Service implements Service1 {
   foo(): Promise<Foo<{ id: Bar }>> {
     return this.c<Foo<{ id: Bar }>>(true, 'foo');
   }
-}`
+}
+`
     );
   });
 
@@ -447,7 +453,8 @@ export class Service implements Service1 {
   foo(): Promise<Foo<Partial<Bar>>> {
     return this.c<Foo<Partial<Bar>>>(true, 'foo');
   }
-}`
+}
+`
     );
   });
 });
@@ -481,7 +488,6 @@ export class Foo implements Foo1 {
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
     this.c = grpcUnary.bind(null, fetch, host, 'Foo');
   }
-
 }
 
 @Injectable()
@@ -490,8 +496,8 @@ export class Qux implements Qux1 {
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
     this.c = grpcUnary.bind(null, fetch, host, 'Qux');
   }
-
-}`);
+}
+`);
     expect(fooPath).toBe('/src/dist/foo.ts');
     expect(bar).toBe(`import {Bar as Bar1} from '../../bar';
 import {Injectable, Inject} from '@angular/core';
@@ -503,8 +509,8 @@ export class Bar implements Bar1 {
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
     this.c = grpcUnary.bind(null, fetch, host, 'Bar');
   }
-
-}`);
+}
+`);
     expect(barPath).toBe('/src/dist/bar.ts');
   });
 });
