@@ -102,11 +102,17 @@ describe('emitter', () => {
     ]);
 
     expect(result).toBe(
-      `import {Foo} from './foo';
+      `import {Injectable, Inject} from '@angular/core';
+import {Fetch, FetchFn} from 'ts-rpc';
+import {Foo} from './foo';
 
+@Injectable()
 export class Service {
+  constructor(@Inject(Fetch) fetch: FetchFn) {
+    this.c = grpcUnary.bind(null, fetch, 'Service');
+  }
   foo(): Promise<Foo> {
-    //
+    this.c('foo');
   }
 }`
     );
@@ -173,16 +179,22 @@ export class Service {
     ]);
 
     expect(result).toBe(
-      `import {Bar} from './bar';
+      `import {Injectable, Inject} from '@angular/core';
+import {Fetch, FetchFn} from 'ts-rpc';
+import {Bar} from './bar';
 import {Foo} from './foo';
 import {Qux, Foo as Foo1} from './foo2';
 
+@Injectable()
 export class Service {
+  constructor(@Inject(Fetch) fetch: FetchFn) {
+    this.c = grpcUnary.bind(null, fetch, 'Service');
+  }
   foo(map: Map<string, Bar>): Promise<Foo> {
-    //
+    this.c('foo', map);
   }
   bar(qux: Qux, foo: Foo1): Promise<Bar> {
-    //
+    this.c('bar', qux, foo);
   }
 }`
     );
@@ -207,11 +219,17 @@ export class Service {
     ]);
 
     expect(result).toBe(
-      `import {Foo} from '../interfaces/foo';
+      `import {Injectable, Inject} from '@angular/core';
+import {Fetch, FetchFn} from 'ts-rpc';
+import {Foo} from '../interfaces/foo';
 
+@Injectable()
 export class Service {
+  constructor(@Inject(Fetch) fetch: FetchFn) {
+    this.c = grpcUnary.bind(null, fetch, 'Service');
+  }
   foo(): Promise<Foo> {
-    //
+    this.c('foo');
   }
 }`
     );

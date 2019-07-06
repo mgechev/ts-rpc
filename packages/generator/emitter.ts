@@ -68,6 +68,12 @@ const emitArgument = (imports: ImportMap, arg: Argument) => {
   return `${arg.name}: ${emitType(imports, arg.type)}`;
 };
 
+const emitMethodBody = (method: Method) => {
+  return `this.c('${method.name}'${method.arguments.length ? ', ' : ''}${method.arguments
+    .map(a => a.name)
+    .join(', ')});`;
+};
+
 const emitMethod = (imports: ImportMap, method: Method) => {
   return `  ${method.name}(${method.arguments
     .map(emitArgument.bind(null, imports))
@@ -76,17 +82,24 @@ const emitMethod = (imports: ImportMap, method: Method) => {
     path: '',
     params: [method.returnType]
   })} {
-    //
+    ${emitMethodBody(method)}
   }`;
 };
 
 const emitService = (imports: ImportMap, service: Service) => {
-  return `export class ${service.name} {
+  return `@Injectable()
+export class ${service.name} {
+  constructor(@Inject(Fetch) fetch: FetchFn) {
+    this.c = grpcUnary.bind(null, fetch, '${service.name}');
+  }
 ${service.methods.map(emitMethod.bind(null, imports)).join('\n')}
 }`;
 };
 
-const getRelativePath = (currentPath: string, path: string) => {
+const getImportPath = (currentPath: string, path: string) => {
+  if (!path.startsWith('./') && !path.startsWith('/')) {
+    return path;
+  }
   path = path.replace(/\.ts$/, '');
   const result = relative(currentPath, path);
   if (!result.startsWith('.')) {
@@ -112,20 +125,60 @@ const serializeImports = (currentPath: string, imports: ImportMap) => {
             return `${s} as ${name}`;
           })
           .join(', ') +
-        `} from '${getRelativePath(currentPath, path)}';`
+        `} from '${getImportPath(currentPath, path)}';`
       );
     })
     .join('\n');
 };
 
+const getDefaultImportMap = (services: Service[]): ImportMap =>
+  services.length
+    ? {
+        symbols: new Map([
+          [
+            'Inject',
+            {
+              total: 0,
+              importName: new Map([['@angular/core', 0]])
+            }
+          ],
+          [
+            'Injectable',
+            {
+              total: 0,
+              importName: new Map([['@angular/core', 0]])
+            }
+          ],
+          [
+            'Fetch',
+            {
+              total: 0,
+              importName: new Map([['ts-rpc', 0]])
+            }
+          ],
+          [
+            'FetchFn',
+            {
+              total: 0,
+              importName: new Map([['ts-rpc', 0]])
+            }
+          ]
+        ]),
+        imports: new Map([
+          ['@angular/core', new Set(['Injectable', 'Inject'])],
+          ['ts-rpc', new Set(['Fetch', 'FetchFn'])]
+        ])
+      }
+    : {
+        symbols: new Map(),
+        imports: new Map()
+      };
+
 export const emit = (path: string, services: Service[]): string => {
   if (!isAbsolute(path)) {
     throw new Error('The specified output path should be absolute');
   }
-  const imports: ImportMap = {
-    symbols: new Map(),
-    imports: new Map()
-  };
+  const imports = getDefaultImportMap(services);
   services.forEach(first => {
     services.forEach(second => {
       if (second !== first && second.name === first.name) {
