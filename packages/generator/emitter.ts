@@ -24,6 +24,10 @@ const builtIns = [
   {
     name: 'Fetch',
     path: 'ts-rpc'
+  },
+  {
+    name: 'Host',
+    path: 'ts-rpc'
   }
 ];
 
@@ -143,8 +147,8 @@ const emitService = (imports: SymbolTable, service: Service) => {
   return `@Injectable()
 export class ${service.name} implements ${imports.getSymbolName(service.name, service.path)} {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
-  constructor(@Inject(Fetch) fetch: FetchFn) {
-    this.c = grpcUnary.bind(null, fetch, '${service.name}');
+  constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
+    this.c = grpcUnary.bind(null, fetch, host, '${service.name}');
   }
 ${service.methods.map(emitMethod.bind(null, imports)).join('\n')}
 }`;

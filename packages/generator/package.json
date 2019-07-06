@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/mgechev/ts-rpc#readme",
   "devDependencies": {
+    "@types/commander": "^2.12.2",
     "@types/jest": "^24.0.15",
     "@types/node": "^12.0.10",
     "jest": "^24.8.0",
@@ -43,5 +44,8 @@
       "json",
       "node"
     ]
+  },
+  "dependencies": {
+    "commander": "^2.20.0"
   }
 }

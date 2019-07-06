@@ -102,14 +102,14 @@ describe('emitter', () => {
     expect(result).toBe(
       `import {Service as Service1} from './service';
 import {Injectable, Inject} from '@angular/core';
-import {grpcUnary, FetchFn, Fetch} from 'ts-rpc';
+import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc';
 import {Foo} from './foo';
 
 @Injectable()
 export class Service implements Service1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
-  constructor(@Inject(Fetch) fetch: FetchFn) {
-    this.c = grpcUnary.bind(null, fetch, 'Service');
+  constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
+    this.c = grpcUnary.bind(null, fetch, host, 'Service');
   }
   foo(): Promise<Foo> {
     return this.c<Foo>(false, 'foo');
@@ -182,7 +182,7 @@ export class Service implements Service1 {
     expect(result).toBe(
       `import {Service as Service1} from './service';
 import {Injectable, Inject} from '@angular/core';
-import {grpcUnary, FetchFn, Fetch} from 'ts-rpc';
+import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc';
 import {Bar} from './bar';
 import {Foo} from './foo';
 import {Qux, Foo as Foo1} from './foo2';
@@ -190,8 +190,8 @@ import {Qux, Foo as Foo1} from './foo2';
 @Injectable()
 export class Service implements Service1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
-  constructor(@Inject(Fetch) fetch: FetchFn) {
-    this.c = grpcUnary.bind(null, fetch, 'Service');
+  constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
+    this.c = grpcUnary.bind(null, fetch, host, 'Service');
   }
   foo(map: Map<string, Bar>): Promise<Foo> {
     return this.c<Foo>(true, 'foo', map);
@@ -225,14 +225,14 @@ export class Service implements Service1 {
     expect(result).toBe(
       `import {Service as Service1} from '../../service';
 import {Injectable, Inject} from '@angular/core';
-import {grpcUnary, FetchFn, Fetch} from 'ts-rpc';
+import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc';
 import {Foo} from '../interfaces/foo';
 
 @Injectable()
 export class Service implements Service1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
-  constructor(@Inject(Fetch) fetch: FetchFn) {
-    this.c = grpcUnary.bind(null, fetch, 'Service');
+  constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
+    this.c = grpcUnary.bind(null, fetch, host, 'Service');
   }
   foo(): Promise<Foo> {
     return this.c<Foo>(true, 'foo');
@@ -282,15 +282,15 @@ export class Service implements Service1 {
     expect(result).toBe(
       `import {Service as Service1} from '../../service';
 import {Injectable, Inject} from '@angular/core';
-import {grpcUnary, FetchFn, Fetch} from 'ts-rpc';
+import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc';
 import {Injectable as Injectable1, grpcUnary as grpcUnary1} from '../../foo';
 import {Inject as Inject1} from '../interfaces/foo';
 
 @Injectable()
 export class Service implements Service1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
-  constructor(@Inject(Fetch) fetch: FetchFn) {
-    this.c = grpcUnary.bind(null, fetch, 'Service');
+  constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
+    this.c = grpcUnary.bind(null, fetch, host, 'Service');
   }
   foo(a: Injectable1, b: grpcUnary1): Promise<Inject1> {
     return this.c<Inject1>(true, 'foo', a, b);
@@ -331,7 +331,7 @@ export class Service implements Service1 {
     expect(result).toBe(
       `import {Service as Service1} from '../../service';
 import {Injectable, Inject} from '@angular/core';
-import {grpcUnary, FetchFn, Fetch} from 'ts-rpc';
+import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc';
 import {Bar} from '../interfaces/bar';
 import {Qux} from '../interfaces/qux';
 import {Foo} from '../interfaces/foo';
@@ -339,8 +339,8 @@ import {Foo} from '../interfaces/foo';
 @Injectable()
 export class Service implements Service1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
-  constructor(@Inject(Fetch) fetch: FetchFn) {
-    this.c = grpcUnary.bind(null, fetch, 'Service');
+  constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
+    this.c = grpcUnary.bind(null, fetch, host, 'Service');
   }
   foo(): Promise<Foo<Bar, Qux>> {
     return this.c<Foo<Bar, Qux>>(true, 'foo');
