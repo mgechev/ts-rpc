@@ -454,9 +454,14 @@ export class Service implements Service1 {
 
 describe('emitting multiple services', () => {
   it('should emit each service in its own file', () => {
-    const [{ content: result }] = emit('/src/dist', [
+    const [{ content: foo, path: fooPath }, { content: bar, path: barPath }] = emit('/src/dist', [
       {
         name: 'Foo',
+        path: '/foo.ts',
+        methods: []
+      },
+      {
+        name: 'Qux',
         path: '/foo.ts',
         methods: []
       },
@@ -466,5 +471,40 @@ describe('emitting multiple services', () => {
         methods: []
       }
     ]);
+    expect(foo).toBe(`import {Foo as Foo1, Qux as Qux1} from '../../foo';
+import {Injectable, Inject} from '@angular/core';
+import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc';
+
+@Injectable()
+export class Foo implements Foo1 {
+  private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
+  constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
+    this.c = grpcUnary.bind(null, fetch, host, 'Foo');
+  }
+
+}
+
+@Injectable()
+export class Qux implements Qux1 {
+  private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
+  constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
+    this.c = grpcUnary.bind(null, fetch, host, 'Qux');
+  }
+
+}`);
+    expect(fooPath).toBe('/foo.ts');
+    expect(bar).toBe(`import {Bar as Bar1} from '../../bar';
+import {Injectable, Inject} from '@angular/core';
+import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc';
+
+@Injectable()
+export class Bar implements Bar1 {
+  private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
+  constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
+    this.c = grpcUnary.bind(null, fetch, host, 'Bar');
+  }
+
+}`);
+    expect(barPath).toBe('/bar.ts');
   });
 });
