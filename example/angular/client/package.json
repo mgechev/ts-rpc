@@ -8,7 +8,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "generate": "ts-node -P ../../../packages/generator/tsconfig.json ../../../packages/generator/index.ts --output src/app/client tsconfig.app.json"
+    "generate": "ts-node -P ../../../packages/ts-rpc/tsconfig.json ../../../packages/ts-rpc/index.ts --output src/app/client tsconfig.app.json"
   },
   "private": true,
   "dependencies": {
@@ -20,7 +20,7 @@
     "@angular/platform-browser": "~8.1.0",
     "@angular/platform-browser-dynamic": "~8.1.0",
     "@angular/router": "~8.1.0",
-    "ts-rpc": "../../../packages/ts-rpc/",
+    "ts-rpc-client": "../../../packages/ts-rpc-client/",
     "todomvc-app-css": "^2.2.0",
     "todomvc-common": "^1.0.5",
     "rxjs": "~6.4.0",

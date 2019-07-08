@@ -1,5 +1,5 @@
 import { TodosService as TodosService1 } from '../client/src/app/services/todos';
-import { GRPC, start } from './grpc';
+import { GRPC, listen } from 'ts-rpc-server';
 import { Todo } from '../client/src/app/models/todo';
 import { TodoOrm } from './db';
 
@@ -37,4 +37,4 @@ class TodosService implements TodosService1 {
   }
 }
 
-start();
+listen('0.0.0.0', 8081);

@@ -8,7 +8,7 @@ import { AppComponent } from './app.component';
 import { TodosComponent } from './todos/todos.component';
 import { TodoComponent } from './todos/todo/todo.component';
 import { TodosFilter } from './todos/todos.pipe';
-import { Fetch, Host } from 'ts-rpc';
+import { Fetch, Host } from 'ts-rpc-client';
 
 @NgModule({
   declarations: [AppComponent, TodosComponent, TodoComponent, TodosFilter],

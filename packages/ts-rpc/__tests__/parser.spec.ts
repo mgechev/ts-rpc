@@ -2,7 +2,7 @@ import { parse } from '../parser';
 import { createMemoryProgram } from '../program/program';
 
 const tsrpc: [string, string] = [
-  '/node_modules/ts-rpc.ts',
+  '/node_modules/ts-rpc-client.ts',
   `
   export interface Service {}
   `
@@ -16,7 +16,7 @@ describe('parser', () => {
         [
           '/foo.ts',
           `
-            import {Service} from 'ts-rpc';
+            import {Service} from 'ts-rpc-client';
             interface Bar extends Service {}
           `
         ]
@@ -32,7 +32,7 @@ describe('parser', () => {
         [
           '/foo.ts',
           `
-            import {Service as Sample} from 'ts-rpc';
+            import {Service as Sample} from 'ts-rpc-client';
             interface Bar extends Sample {}
           `
         ]
@@ -47,7 +47,7 @@ describe('parser', () => {
     const program = createMemoryProgram(
       new Map([
         tsrpc,
-        ['/bar.ts', 'export {Service as bar} from "ts-rpc";'],
+        ['/bar.ts', 'export {Service as bar} from "ts-rpc-client";'],
         [
           '/foo.ts',
           `
@@ -66,7 +66,7 @@ describe('parser', () => {
     const program = createMemoryProgram(
       new Map([
         tsrpc,
-        ['/bar.ts', 'export {Service as bar} from "ts-rpc";'],
+        ['/bar.ts', 'export {Service as bar} from "ts-rpc-client";'],
         [
           '/foo.ts',
           `
@@ -94,7 +94,7 @@ describe('parser', () => {
         [
           '/foo.ts',
           `
-            import {Service} from 'ts-rpc';
+            import {Service} from 'ts-rpc-client';
             interface Bar extends Service {
               foo(a: number[]): Promise<void>;
             }
@@ -118,7 +118,7 @@ describe('parser', () => {
     const program = createMemoryProgram(
       new Map([
         tsrpc,
-        ['/bar.ts', 'export {Service as bar} from "ts-rpc";'],
+        ['/bar.ts', 'export {Service as bar} from "ts-rpc-client";'],
         [
           '/foo.ts',
           `
@@ -149,7 +149,7 @@ describe('parser', () => {
         [
           '/foo.ts',
           `
-            import {Service} from 'ts-rpc';
+            import {Service} from 'ts-rpc-client';
 
             interface Human {}
             interface Bar extends Service {
@@ -179,7 +179,7 @@ describe('parser', () => {
         [
           '/foo.ts',
           `
-            import {Service} from 'ts-rpc';
+            import {Service} from 'ts-rpc-client';
             import {foo} from './bar';
 
             interface Human {}
@@ -213,7 +213,7 @@ describe('parser', () => {
         [
           '/foo.ts',
           `
-            import {Service} from 'ts-rpc';
+            import {Service} from 'ts-rpc-client';
             import {Foo, Bar} from './bar';
 
             interface Qux {}
@@ -259,7 +259,7 @@ describe('parser', () => {
         [
           '/foo.ts',
           `
-            import {Service} from 'ts-rpc';
+            import {Service} from 'ts-rpc-client';
             import {Foo, Bar} from './bar';
 
             interface Qux {}
@@ -303,7 +303,7 @@ describe('parser', () => {
         [
           '/foo.ts',
           `
-            import {Service} from 'ts-rpc';
+            import {Service} from 'ts-rpc-client';
             import {Foo, Bar} from './bar';
 
             interface Qux {}
@@ -328,7 +328,7 @@ describe('parser', () => {
         [
           '/foo.ts',
           `
-            import {Service} from 'ts-rpc';
+            import {Service} from 'ts-rpc-client';
 
             interface RPC extends Service {
               foo<Mutate>({ id }: { id: string }): Promise<void>;
@@ -356,7 +356,7 @@ describe('parser', () => {
         [
           '/foo.ts',
           `
-            import {Service} from 'ts-rpc';
+            import {Service} from 'ts-rpc-client';
             import {Bar} from './bar';
 
             interface RPC extends Service {

@@ -15,19 +15,19 @@ const builtIns = [
   },
   {
     name: 'grpcUnary',
-    path: 'ts-rpc'
+    path: 'ts-rpc-client'
   },
   {
     name: 'FetchFn',
-    path: 'ts-rpc'
+    path: 'ts-rpc-client'
   },
   {
     name: 'Fetch',
-    path: 'ts-rpc'
+    path: 'ts-rpc-client'
   },
   {
     name: 'Host',
-    path: 'ts-rpc'
+    path: 'ts-rpc-client'
   }
 ];
 

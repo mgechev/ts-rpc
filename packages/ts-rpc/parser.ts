@@ -78,7 +78,7 @@ const isRPCServiceInterface = (expr: ts.ExpressionWithTypeArguments, program: ts
   if (!symbol) return false;
   const type = getType(expr, tch);
   if (!type) return false;
-  return type.name === 'Service' && type.path.includes('ts-rpc');
+  return type.name === 'Service' && type.path.includes('ts-rpc-client');
 };
 
 const isRPCService = (n: ts.Node, program: ts.Program): boolean => {

@@ -1,0 +1,18 @@
+{
+  "name": "ts-rpc-server",
+  "version": "0.0.0",
+  "description": "",
+  "scripts": {
+    "build": "rm -rf dist && tsc"
+  },
+  "main": "dist/index.js",
+  "author": "Minko Gechev <mgechev@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "grpc": "^1.21.1"
+  },
+  "devDependencies": {
+    "@types/node": "^12.0.12",
+    "typescript": "^3.5.2"
+  }
+}

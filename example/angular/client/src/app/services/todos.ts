@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import { Todo } from '../models/todo';
-import { Service } from 'ts-rpc';
+import { Service } from 'ts-rpc-client';
 
 export const TodosServiceToken = new InjectionToken('TodosService');
 

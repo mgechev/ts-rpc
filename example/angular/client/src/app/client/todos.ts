@@ -1,6 +1,6 @@
 import {TodosService as TodosService1} from '../services/todos';
 import {Injectable, Inject} from '@angular/core';
-import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc';
+import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc-client';
 import {Todo} from '../models/todo';
 
 @Injectable()

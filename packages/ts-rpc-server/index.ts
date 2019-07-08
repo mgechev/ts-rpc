@@ -22,7 +22,6 @@ export function GRPC() {
         },
         {
           [methodPath](call: any, cb: any) {
-            console.log('Responding to', methodPath);
             klass.prototype[methodName].apply(klass.prototype, call.request).then((result: any) => {
               cb(null, result);
             });
@@ -34,9 +33,9 @@ export function GRPC() {
 }
 
 const serializeJson = (obj: any) => {
-  console.log('Serializing', obj);
   return new Buffer(JSON.stringify(obj));
 };
+
 const deserializeJson = (buffer: Buffer) => {
   if (buffer === undefined || buffer === null) {
     return buffer;
@@ -44,7 +43,7 @@ const deserializeJson = (buffer: Buffer) => {
   return JSON.parse(buffer.toString());
 };
 
-export const start = () => {
-  server.bind('0.0.0.0:8081', grpc.ServerCredentials.createInsecure());
+export const listen = (address: string, port: number) => {
+  server.bind(address + ':' + port, grpc.ServerCredentials.createInsecure());
   server.start();
 };
