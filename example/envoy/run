@@ -1,0 +1,3 @@
+docker build -t envoy/envoy -f Dockerfile .
+docker run -p 9211:9211 envoy/envoy
+# docker logs envoy -f

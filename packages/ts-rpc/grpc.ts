@@ -15,6 +15,13 @@ const getBody = (args: any[]) => {
   return new Blob([new Uint8Array([0, ...res, ...bin])]);
 };
 
+const parseResponse = (arr: ArrayBuffer) => {
+  const view = new Uint8Array(arr);
+  const decoder = new TextDecoder();
+  const res = decoder.decode(view.slice(5));
+  return JSON.parse(res);
+};
+
 export function grpcUnary(
   fetch: FetchFn,
   host: string,
@@ -32,5 +39,7 @@ export function grpcUnary(
       'content-type': 'application/grprc'
     },
     body
-  }).then(response => response.json());
+  })
+    .then(response => response.arrayBuffer())
+    .then(parseResponse);
 }
