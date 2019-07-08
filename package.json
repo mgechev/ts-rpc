@@ -1,5 +1,6 @@
 {
   "name": "ts-rpc",
+  "private": true,
   "version": "0.0.0",
   "description": "Placeholder root package.json",
   "main": "index.js",
@@ -18,5 +19,12 @@
   "homepage": "https://github.com/mgechev/ts-rpc#readme",
   "devDependencies": {
     "lerna": "^3.15.0"
-  }
+  },
+  "workspaces": [
+    "packages/ts-rpc",
+    "packages/ts-rpc-client",
+    "packages/ts-rpc-server",
+    "example/angular/client",
+    "example/angular/server"
+  ]
 }
