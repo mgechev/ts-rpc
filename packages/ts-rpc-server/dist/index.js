@@ -1,6 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const grpc = require('grpc');
+const chalk_1 = require("chalk");
+const info = (msg) => console.info(chalk_1.default.gray(msg));
+const success = (msg) => console.log(chalk_1.default.yellow(msg));
 const server = new grpc.Server();
 function GRPC() {
     return function (klass) {
@@ -20,6 +23,7 @@ function GRPC() {
                 }
             }, {
                 [methodPath](call, cb) {
+                    info(`Handling request ${methodPath}`);
                     klass.prototype[methodName].apply(klass.prototype, call.request).then((result) => {
                         cb(null, result);
                     });
@@ -39,7 +43,9 @@ const deserializeJson = (buffer) => {
     return JSON.parse(buffer.toString());
 };
 exports.listen = (address, port) => {
-    server.bind(address + ':' + port, grpc.ServerCredentials.createInsecure());
+    const socket = address + ':' + port;
+    server.bind(socket, grpc.ServerCredentials.createInsecure());
+    success(`Listening on ${socket}`);
     server.start();
 };
 //# sourceMappingURL=index.js.map

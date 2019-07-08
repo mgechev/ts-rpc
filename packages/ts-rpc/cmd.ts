@@ -4,6 +4,12 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { parse } from './parser';
 import { emit } from './emitter';
 import { sync as mkdirpSync } from 'mkdirp';
+import chalk from 'chalk';
+
+const error = (str: string) => console.error('🚨', chalk.red(str));
+const warning = (str: string) => console.warn('⚠️', chalk.yellow(str));
+const info = (str: string) => console.log('ℹ️ ', chalk.blueBright(str));
+const success = (str: string) => console.log('✅', chalk.green(str));
 
 const createProgram = (tsconfig: string) => {
   const config = ts.readConfigFile(tsconfig, ts.sys.readFile);
@@ -22,7 +28,8 @@ const createProgram = (tsconfig: string) => {
   );
 
   if (config.error !== undefined) {
-    throw new Error(config.error.messageText.toString());
+    error(config.error.messageText.toString());
+    process.exit(1);
   }
 
   const host = ts.createCompilerHost(parsed.options, true);
@@ -32,7 +39,7 @@ const createProgram = (tsconfig: string) => {
 };
 
 const report = (diagnostic: ts.Diagnostic[]) => {
-  console.error(diagnostic.length, 'errors');
+  diagnostic.forEach(d => error(d.messageText.toString()));
 };
 
 export const generate = (tsconfig: string, out: string) => {
@@ -46,10 +53,13 @@ export const generate = (tsconfig: string, out: string) => {
     process.exit(1);
   }
   if (!services.length) {
-    console.warn('No service declarations found');
+    warning('No service declarations found');
   }
-  emit(out, services).forEach(({ path, content }) => {
+  const clients = emit(out, services)
+  clients.forEach(({ path, content }) => {
+    info(`Emitting ${path.replace(process.cwd(), '')}`);
     mkdirpSync(dirname(path));
     writeFileSync(path, content);
   });
+  clients.length && success(`Created ${clients.length} ${clients.length === 1 ? 'client': 'clients'}`);
 };

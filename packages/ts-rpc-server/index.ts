@@ -1,5 +1,10 @@
 const grpc = require('grpc');
 
+import chalk from 'chalk';
+
+const info = (msg: string) => console.info(chalk.gray(msg));
+const success = (msg: string) => console.log(chalk.yellow(msg));
+
 const server = new grpc.Server();
 
 export function GRPC() {
@@ -22,6 +27,7 @@ export function GRPC() {
         },
         {
           [methodPath](call: any, cb: any) {
+            info(`Handling request ${methodPath}`);
             klass.prototype[methodName].apply(klass.prototype, call.request).then((result: any) => {
               cb(null, result);
             });
@@ -44,6 +50,8 @@ const deserializeJson = (buffer: Buffer) => {
 };
 
 export const listen = (address: string, port: number) => {
-  server.bind(address + ':' + port, grpc.ServerCredentials.createInsecure());
+  const socket = address + ':' + port;
+  server.bind(socket, grpc.ServerCredentials.createInsecure());
+  success(`Listening on ${socket}`)
   server.start();
 };
