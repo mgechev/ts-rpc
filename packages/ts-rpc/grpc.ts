@@ -19,7 +19,9 @@ const parseResponse = (arr: ArrayBuffer) => {
   const view = new Uint8Array(arr);
   const decoder = new TextDecoder();
   const res = decoder.decode(view.slice(5));
-  return JSON.parse(res);
+  if (res.length) {
+    return JSON.parse(res);
+  }
 };
 
 export function grpcUnary(

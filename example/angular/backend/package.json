@@ -10,6 +10,11 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^12.0.12",
-    "grpc": "^1.21.1"
+    "grpc": "^1.21.1",
+    "pg": "^7.11.0",
+    "sequelize": "^5.9.4"
+  },
+  "devDependencies": {
+    "@types/sequelize": "^4.28.3"
   }
 }

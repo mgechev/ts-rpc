@@ -1,26 +1,39 @@
 import { TodosService as TodosService1 } from '../client/src/app/services/todos';
 import { GRPC, start } from './grpc';
 import { Todo } from '../client/src/app/models/todo';
-
-const todo: Todo = {
-  completed: true,
-  id: '2',
-  label: '123'
-};
+import { TodoOrm } from './db';
 
 @GRPC()
 class TodosService implements TodosService1 {
-  getAll(): Promise<Array<Todo>> {
-    return Promise.resolve([todo]);
+  getAll(): Promise<Todo[]> {
+    return Promise.resolve(TodoOrm.findAll()).then(todos =>
+      todos.sort((a: Todo, b: Todo) => parseInt(a.id) - parseInt(b.id))
+    );
   }
-  createTodo(_: Partial<Todo>): Promise<Todo> {
-    return Promise.resolve(todo);
+
+  createTodo(todo: Todo): Promise<Todo> {
+    return Promise.resolve(TodoOrm.create(todo)).then(({ id }: { id: string }) => {
+      todo.id = id;
+      return todo;
+    });
   }
+
   updateTodo(todo: Todo): Promise<Todo> {
-    return Promise.resolve(todo);
+    return Promise.resolve(
+      TodoOrm.update(todo, {
+        where: { id: todo.id }
+      })
+    ).then(_ => {
+      return todo;
+    });
   }
+
   deleteTodo({ id }: { id: string }): Promise<void> {
-    return Promise.resolve();
+    return Promise.resolve(
+      TodoOrm.destroy({
+        where: { id }
+      }).then(() => Promise.resolve())
+    );
   }
 }
 
