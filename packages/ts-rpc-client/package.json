@@ -4,7 +4,7 @@
   "description": "TypeScript RPC protocol",
   "main": "dist/index.js",
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "rm -rf dist && tsc && cp package.json dist",
     "test": "jest"
   },
   "repository": {
