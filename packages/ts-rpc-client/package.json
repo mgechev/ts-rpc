@@ -1,5 +1,5 @@
 {
-  "name": "ts-rpc",
+  "name": "ts-rpc-client",
   "version": "0.0.0",
   "description": "TypeScript RPC protocol",
   "main": "dist/index.js",

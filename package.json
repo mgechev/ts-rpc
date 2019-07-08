@@ -21,10 +21,7 @@
     "lerna": "^3.15.0"
   },
   "workspaces": [
-    "packages/ts-rpc",
-    "packages/ts-rpc-client",
-    "packages/ts-rpc-server",
-    "example/angular/client",
-    "example/angular/server"
+    "packages/*",
+    "example/angular/*"
   ]
 }

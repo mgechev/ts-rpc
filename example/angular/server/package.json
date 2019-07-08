@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^12.0.12",
-    "ts-rpc-server": "latest",
+    "ts-rpc-server": "./packages/ts-rpc-server",
     "pg": "^7.11.0",
     "sequelize": "^5.9.4"
   },
