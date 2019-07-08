@@ -1,9 +1,9 @@
 import { TodosService as TodosService1 } from '../client/src/app/services/todos';
-import { GRPC, listen } from 'ts-rpc-server';
+import { Service, listen } from 'ts-rpc-server';
 import { Todo } from '../client/src/app/models/todo';
 import { TodoOrm } from './db';
 
-@GRPC()
+@Service()
 class TodosService implements TodosService1 {
   getAll(): Promise<Todo[]> {
     return Promise.resolve(TodoOrm.findAll()).then(todos =>

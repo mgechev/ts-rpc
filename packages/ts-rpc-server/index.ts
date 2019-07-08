@@ -7,7 +7,7 @@ const success = (msg: string) => console.log(chalk.yellow(msg));
 
 const server = new grpc.Server();
 
-export function GRPC() {
+export function Service() {
   return function(klass: Function) {
     const serviceName = klass.name;
     Object.keys(klass.prototype).forEach(methodName => {
