@@ -5,7 +5,7 @@
   "description": "Placeholder root package.json",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "lerna run build"
   },
   "repository": {
     "type": "git",
@@ -21,7 +21,6 @@
     "lerna": "^3.15.0"
   },
   "workspaces": [
-    "packages/*",
-    "example/angular/*"
+    "packages/*"
   ]
 }

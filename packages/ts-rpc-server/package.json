@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "",
   "scripts": {
-    "build": "rm -rf dist && tsc"
+    "build": "rm -rf dist && tsc && cp package.json dist"
   },
   "main": "dist/index.js",
   "author": "Minko Gechev <mgechev@gmail.com>",
