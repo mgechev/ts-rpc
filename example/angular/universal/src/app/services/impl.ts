@@ -1,5 +1,5 @@
 import { TodosService as TodosService1 } from './todos';
-import { Service, listen } from 'ts-rpc-server';
+import { Service } from 'ts-rpc-server';
 import { findAll, create, update, destroy } from './db';
 import { Todo } from '../models/todo';
 
@@ -28,4 +28,3 @@ export class TodosService implements TodosService1 {
   }
 }
 
-listen('0.0.0.0', 8081);

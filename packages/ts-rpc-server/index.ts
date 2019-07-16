@@ -52,6 +52,6 @@ const deserializeJson = (buffer: Buffer) => {
 export const listen = (address: string, port: number) => {
   const socket = address + ':' + port;
   server.bind(socket, grpc.ServerCredentials.createInsecure());
-  success(`Listening on ${socket}`)
+  success(`TS RPC listening on ${socket}`)
   server.start();
 };
