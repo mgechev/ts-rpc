@@ -101,11 +101,10 @@ describe('emitter', () => {
 
     expect(result).toBe(
       `import {Service as Service1} from './service';
-import {Injectable, Inject} from '@angular/core';
+import {Inject} from '@angular/core';
 import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc-client';
 import {Foo} from './foo';
 
-@Injectable()
 export class Service implements Service1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
@@ -182,13 +181,12 @@ export class Service implements Service1 {
 
     expect(result).toBe(
       `import {Service as Service1} from './service';
-import {Injectable, Inject} from '@angular/core';
+import {Inject} from '@angular/core';
 import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc-client';
 import {Bar} from './bar';
 import {Foo} from './foo';
 import {Qux, Foo as Foo1} from './foo2';
 
-@Injectable()
 export class Service implements Service1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
@@ -226,11 +224,10 @@ export class Service implements Service1 {
 
     expect(result).toBe(
       `import {Service as Service1} from '../../service';
-import {Injectable, Inject} from '@angular/core';
+import {Inject} from '@angular/core';
 import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc-client';
 import {Foo} from '../interfaces/foo';
 
-@Injectable()
 export class Service implements Service1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
@@ -284,18 +281,17 @@ export class Service implements Service1 {
 
     expect(result).toBe(
       `import {Service as Service1} from '../../service';
-import {Injectable, Inject} from '@angular/core';
+import {Inject} from '@angular/core';
 import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc-client';
-import {Injectable as Injectable1, grpcUnary as grpcUnary1} from '../../foo';
+import {Injectable, grpcUnary as grpcUnary1} from '../../foo';
 import {Inject as Inject1} from '../interfaces/foo';
 
-@Injectable()
 export class Service implements Service1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
     this.c = grpcUnary.bind(null, fetch, host, 'Service');
   }
-  foo(a: Injectable1, b: grpcUnary1): Promise<Inject1> {
+  foo(a: Injectable, b: grpcUnary1): Promise<Inject1> {
     return this.c<Inject1>(true, 'foo', a, b);
   }
 }
@@ -334,13 +330,12 @@ export class Service implements Service1 {
 
     expect(result).toBe(
       `import {Service as Service1} from '../../service';
-import {Injectable, Inject} from '@angular/core';
+import {Inject} from '@angular/core';
 import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc-client';
 import {Bar} from '../interfaces/bar';
 import {Qux} from '../interfaces/qux';
 import {Foo} from '../interfaces/foo';
 
-@Injectable()
 export class Service implements Service1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
@@ -387,12 +382,11 @@ export class Service implements Service1 {
 
     expect(result).toBe(
       `import {Service as Service1} from '../../service';
-import {Injectable, Inject} from '@angular/core';
+import {Inject} from '@angular/core';
 import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc-client';
 import {Bar} from '../interfaces/bar';
 import {Foo} from '../interfaces/foo';
 
-@Injectable()
 export class Service implements Service1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
@@ -439,12 +433,11 @@ export class Service implements Service1 {
 
     expect(result).toBe(
       `import {Service as Service1} from '../../service';
-import {Injectable, Inject} from '@angular/core';
+import {Inject} from '@angular/core';
 import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc-client';
 import {Bar} from '../interfaces/bar';
 import {Foo} from '../interfaces/foo';
 
-@Injectable()
 export class Service implements Service1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
@@ -479,10 +472,9 @@ describe('emitting multiple services', () => {
       }
     ]);
     expect(foo).toBe(`import {Foo as Foo1, Qux as Qux1} from '../../foo';
-import {Injectable, Inject} from '@angular/core';
+import {Inject} from '@angular/core';
 import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc-client';
 
-@Injectable()
 export class Foo implements Foo1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
@@ -490,7 +482,6 @@ export class Foo implements Foo1 {
   }
 }
 
-@Injectable()
 export class Qux implements Qux1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
@@ -500,10 +491,9 @@ export class Qux implements Qux1 {
 `);
     expect(fooPath).toBe('/src/dist/foo.ts');
     expect(bar).toBe(`import {Bar as Bar1} from '../../bar';
-import {Injectable, Inject} from '@angular/core';
+import {Inject} from '@angular/core';
 import {grpcUnary, FetchFn, Fetch, Host} from 'ts-rpc-client';
 
-@Injectable()
 export class Bar implements Bar1 {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {

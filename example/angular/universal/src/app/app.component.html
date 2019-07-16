@@ -1,0 +1,8 @@
+<section class="todoapp">
+  <header class="header">
+    <h1>todos</h1>
+    <input (keydown.enter)="addTodo(input)" #input class="new-todo" placeholder="What needs to be done?" autofocus>
+  </header>
+  <!-- This section should be hidden by default and shown when there are todos -->
+  <app-todos [todos]="getAll() | async" (change)="onChange($event)" (delete)="onDelete($event)"></app-todos>
+</section>

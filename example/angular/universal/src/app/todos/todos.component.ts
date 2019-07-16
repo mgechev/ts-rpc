@@ -16,7 +16,7 @@ import { TodoFilter } from './todos.pipe';
 })
 export class TodosComponent implements OnInit, OnDestroy {
   @Input() todos: Todo[] | null;
-  @Output() change = new EventEmitter();
+  @Output() update = new EventEmitter();
   @Output() delete = new EventEmitter();
   @Output() add = new EventEmitter();
   private hashListener: EventListenerOrEventListenerObject;
@@ -38,7 +38,7 @@ export class TodosComponent implements OnInit, OnDestroy {
     }
   }
 
-  get filterValue() {
+  get filterValue(): TodoFilter {
     if (typeof window !== 'undefined') {
       return window.location.hash.replace(/^#\//, '') as TodoFilter || TodoFilter.All;
     }

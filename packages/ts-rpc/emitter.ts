@@ -6,10 +6,6 @@ type ImportPath = string;
 
 const builtIns = [
   {
-    name: 'Injectable',
-    path: '@angular/core'
-  },
-  {
     name: 'Inject',
     path: '@angular/core'
   },
@@ -148,8 +144,7 @@ const emitService = (imports: SymbolTable, service: Service) => {
   const methods = service.methods.length
     ? '\n' + service.methods.map(emitMethod.bind(null, imports)).join('\n')
     : '';
-  return `@Injectable()
-export class ${service.name} implements ${imports.getSymbolName(service.name, service.path)} {
+  return `export class ${service.name} implements ${imports.getSymbolName(service.name, service.path)} {
   private c: <T>(sideEffect: boolean, method: string, ...args: any[]) => Promise<T>;
   constructor(@Inject(Fetch) fetch: FetchFn, @Inject(Host) host: string) {
     this.c = grpcUnary.bind(null, fetch, host, '${service.name}');

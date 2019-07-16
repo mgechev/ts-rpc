@@ -1,7 +1,7 @@
 import { TodosService } from './client/todos';
 import { TodosServiceToken } from './services/todos';
 
-import { BrowserModule } from '@angular/platform-browser';
+import { BrowserModule, BrowserTransferStateModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
@@ -21,7 +21,7 @@ export function todoServiceFactory() {
       useFactory: todoServiceFactory
     }
   ],
-  imports: [BrowserModule],
+  imports: [BrowserModule.withServerTransition({ appId: 'serverApp' }), BrowserTransferStateModule],
   bootstrap: [AppComponent]
 })
 export class AppModule {}
