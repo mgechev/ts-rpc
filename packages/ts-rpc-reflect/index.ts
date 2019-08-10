@@ -1,10 +1,12 @@
 import { grpcUnary, FetchFn } from 'ts-rpc-client';
 
-export const readOnly = Symbol('ts-rpc-reflect.readonly');
+export const ReadOnly = Symbol('ts-rpc-reflect.ReadOnly');
+
+export const rpc = (): any => new Error('Not implemented');
 
 export const Read = () => {
   return (_: any, __: string, descriptor: PropertyDescriptor) => {
-    descriptor.value[readOnly] = true;
+    descriptor.value[ReadOnly] = true;
     return descriptor;
   };
 };
@@ -25,7 +27,7 @@ export const serviceFactory = <T extends Function>(declaration: T, fetch: FetchF
     result.prototype[prop] = function() {
       const descriptor = descriptors[prop];
       let isReadOnly = false;
-      if ((descriptor as any)[readOnly]) {
+      if ((descriptor as any)[ReadOnly]) {
         isReadOnly = true;
       }
       return partialUnary(isReadOnly, prop, ...arguments);
