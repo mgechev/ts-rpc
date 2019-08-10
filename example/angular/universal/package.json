@@ -36,6 +36,7 @@
     "todomvc-common": "^1.0.5",
     "ts-rpc-client": "../../../packages/ts-rpc-client/dist",
     "ts-rpc-server": "../../../packages/ts-rpc-server/dist",
+    "ts-rpc-reflect": "../../../packages/ts-rpc-reflect/dist",
     "tslib": "^1.9.0",
     "zone.js": "~0.9.1"
   },

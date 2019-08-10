@@ -4,7 +4,7 @@ import { findAll, create, update, destroy } from './db';
 import { Todo } from '../models/todo';
 
 @Service()
-export class TodosService implements TodosService1 {
+export class TodosService extends TodosService1 {
   async getAll(): Promise<Todo[]> {
     const todos = await findAll();
     return todos.sort((a, b) => parseInt(a.id, 10) - parseInt(b.id, 10));

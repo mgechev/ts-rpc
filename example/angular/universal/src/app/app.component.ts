@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { Todo } from './models/todo';
-import { TodosServiceToken, TodosService } from './services/todos';
+import { TodosService } from './services/todos';
 
 @Component({
   selector: 'app-root',
@@ -10,7 +10,7 @@ import { TodosServiceToken, TodosService } from './services/todos';
 export class AppComponent implements OnInit {
   todos: Todo[] = [];
 
-  constructor(@Inject(TodosServiceToken) private todoService: TodosService) {}
+  constructor(private todoService: TodosService) {}
 
   ngOnInit() {
     this.todoService.getAll().then(todos => {
