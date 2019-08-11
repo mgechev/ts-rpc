@@ -10,7 +10,9 @@ import { TodosService } from './services/todos';
 export class AppComponent implements OnInit {
   todos: Todo[] = [];
 
-  constructor(private todoService: TodosService) {}
+  constructor(private todoService: TodosService) {
+    this.todos = this.todoService.initialTodos;
+  }
 
   ngOnInit() {
     this.todoService.getAll().then(todos => {

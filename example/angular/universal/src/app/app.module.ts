@@ -1,6 +1,9 @@
 import { TodosService } from './services/todos';
 
-import { BrowserModule, BrowserTransferStateModule } from '@angular/platform-browser';
+import {
+  BrowserModule,
+  BrowserTransferStateModule
+} from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
@@ -11,7 +14,14 @@ import { TodosFilter } from './todos/todos.pipe';
 import { serviceFactory } from 'ts-rpc-reflect';
 
 export function todoServiceFactory() {
-  return serviceFactory(TodosService, fetch, 'http://127.0.0.1:9211');
+  return serviceFactory(
+    TodosService,
+    {
+      fetch: ((typeof global !== 'undefined' ? global : window) as any).fetch,
+      host: 'http://127.0.0.1:9211',
+      transferId: 'serverApp-rpc'
+    }
+  );
 }
 
 @NgModule({
@@ -22,7 +32,10 @@ export function todoServiceFactory() {
       useFactory: todoServiceFactory
     }
   ],
-  imports: [BrowserModule.withServerTransition({ appId: 'serverApp' }), BrowserTransferStateModule],
+  imports: [
+    BrowserModule.withServerTransition({ appId: 'serverApp' }),
+    BrowserTransferStateModule
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

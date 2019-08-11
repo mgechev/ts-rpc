@@ -1,0 +1,29 @@
+{
+  "name": "ts-rpc-angular",
+  "version": "0.0.0",
+  "description": "TS-RPC integration with Angular. Adding state transfer.",
+  "main": "dist/packages/ts-rpc-angular/index.js",
+  "author": "Minko Gechev <mgechev@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "ng-packagr -p package.json"
+  },
+  "ngPackage": {
+    "lib": {
+      "entryFile": "index.ts"
+    }
+  },
+  "peerDependencies": {
+    "ts-rpc-reflect": "0.0.0"
+  },
+  "devDependencies": {
+    "@angular/animations": "^8.2.1",
+    "@angular/common": "^8.2.1",
+    "@angular/compiler": "^8.2.1",
+    "@angular/compiler-cli": "^8.2.1",
+    "@angular/core": "^8.2.1",
+    "@angular/platform-browser": "^8.2.1",
+    "@angular/platform-server": "^8.2.1",
+    "ng-packagr": "^5.4.3"
+  }
+}
