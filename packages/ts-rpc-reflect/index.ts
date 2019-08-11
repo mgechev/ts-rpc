@@ -1,22 +1,34 @@
 import { grpcUnary, FetchFn } from 'ts-rpc-client';
 
 export const ɵReadOnly = Symbol('ts-rpc-reflect.ReadOnly');
-export const ɵTransferState = Symbol('ts-rpc-reflect.TransferState');
+export const ɵMiddleware = Symbol('ts-rpc-reflect.Middleware');
 
 export const rpc = (): any => new Error('Not implemented');
 
-export const Read = () => {
-  return (_: any, __: string, descriptor: PropertyDescriptor) => {
-    descriptor.value[ɵReadOnly] = true;
+export interface MiddlewareFn {
+  <T>(
+    service: { name: string },
+    method: string,
+    next: (...args: any[]) => T,
+    ...args: any[]
+  ): T;
+}
+
+export const Middleware = (middleware: MiddlewareFn) => {
+  return (service: any, method: string, descriptor: PropertyDescriptor) => {
+    descriptor.value[ɵMiddleware] = descriptor.value[ɵMiddleware] || {
+      middlewares: [],
+      service,
+      method
+    };
+    descriptor.value[ɵMiddleware].middlewares.push(middleware);
     return descriptor;
   };
 };
 
-export const TransferState = (prop: string) => {
+export const Read = () => {
   return (_: any, __: string, descriptor: PropertyDescriptor) => {
-    descriptor.value[ɵTransferState] = {
-      prop
-    };
+    descriptor.value[ɵReadOnly] = true;
     return descriptor;
   };
 };
@@ -32,18 +44,6 @@ interface Constructable<T> {
 export interface Config {
   fetch: FetchFn;
   host: string;
-  transferId: string;
-}
-
-export function unescapeHtml(text: string): string {
-  const unescapedText: {[k: string]: string} = {
-    '&a;': '&',
-    '&q;': '"',
-    '&s;': '\'',
-    '&l;': '<',
-    '&g;': '>',
-  };
-  return text.replace(/&[^;]+;/g, s => unescapedText[s]);
 }
 
 export const serviceFactory = <T extends Function>(
@@ -58,31 +58,38 @@ export const serviceFactory = <T extends Function>(
     config.host,
     declaration.name
   );
-  const propsAssignment: {[prop: string]: string} = {};
+  const propsAssignment: { [prop: string]: string } = {};
   Object.keys(descriptors).forEach(prop => {
     const descriptor = descriptors[prop];
-    const transferState = (descriptor.value as any)[ɵTransferState] as
-      | { prop: string }
-      | undefined;
-    if (transferState) {
-      const stateContainer = document.getElementById(config.transferId);
-      if (stateContainer) {
-        propsAssignment[transferState.prop] = JSON.parse(JSON.parse(unescapeHtml(stateContainer.innerText))[
-          declaration.name + '#' + prop + '#{}'
-        ]);
-      }
-    }
     result.prototype[prop] = function() {
-      let isReadOnly = false;
-      if ((descriptor.value as any)[ɵReadOnly]) {
-        isReadOnly = true;
-      }
-      return partialUnary(isReadOnly, prop, ...arguments);
+      const args = arguments;
+      const execute = () =>
+        partialUnary(!!(descriptor.value as any)[ɵReadOnly], prop, ...args);
+      const middlewares = (
+        (descriptor.value as any)[ɵMiddleware] || {
+          middlewares: []
+        }
+      ).middlewares.slice() as MiddlewareFn[];
+      const invokeMiddlewares = <T>(
+        current: number,
+        middlewares: MiddlewareFn[]
+      ): Promise<T> => {
+        if (current < 0) {
+          return execute();
+        }
+        return middlewares[current](
+          declaration,
+          prop,
+          () => invokeMiddlewares(current - 1, middlewares),
+          ...args
+        );
+      };
+      return invokeMiddlewares(middlewares.length - 1, middlewares);
     };
   });
   const instance = new ((result as unknown) as Constructable<T>)();
   Object.keys(propsAssignment).forEach(prop => {
     (instance as any)[prop] = propsAssignment[prop];
-  })
+  });
   return instance;
 };

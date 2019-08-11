@@ -19,7 +19,6 @@ export function todoServiceFactory() {
     {
       fetch: ((typeof global !== 'undefined' ? global : window) as any).fetch,
       host: 'http://127.0.0.1:9211',
-      transferId: 'serverApp-rpc'
     }
   );
 }
@@ -33,7 +32,7 @@ export function todoServiceFactory() {
     }
   ],
   imports: [
-    BrowserModule.withServerTransition({ appId: 'serverApp' }),
+    BrowserModule.withServerTransition({ appId: 'todo-app' }),
     BrowserTransferStateModule
   ],
   bootstrap: [AppComponent]

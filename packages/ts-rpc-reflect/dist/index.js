@@ -2,36 +2,28 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const ts_rpc_client_1 = require("ts-rpc-client");
 exports.ɵReadOnly = Symbol('ts-rpc-reflect.ReadOnly');
-exports.ɵTransferState = Symbol('ts-rpc-reflect.TransferState');
+exports.ɵMiddleware = Symbol('ts-rpc-reflect.Middleware');
 exports.rpc = () => new Error('Not implemented');
+exports.Middleware = (middleware) => {
+    return (service, method, descriptor) => {
+        descriptor.value[exports.ɵMiddleware] = descriptor.value[exports.ɵMiddleware] || {
+            middlewares: [],
+            service,
+            method
+        };
+        descriptor.value[exports.ɵMiddleware].middlewares.push(middleware);
+        return descriptor;
+    };
+};
 exports.Read = () => {
     return (_, __, descriptor) => {
         descriptor.value[exports.ɵReadOnly] = true;
         return descriptor;
     };
 };
-exports.TransferState = (prop) => {
-    return (_, __, descriptor) => {
-        descriptor.value[exports.ɵTransferState] = {
-            prop
-        };
-        return descriptor;
-    };
-};
 const baseFactory = (_) => {
     return function () { };
 };
-function unescapeHtml(text) {
-    const unescapedText = {
-        '&a;': '&',
-        '&q;': '"',
-        '&s;': '\'',
-        '&l;': '<',
-        '&g;': '>',
-    };
-    return text.replace(/&[^;]+;/g, s => unescapedText[s]);
-}
-exports.unescapeHtml = unescapeHtml;
 exports.serviceFactory = (declaration, config) => {
     const result = baseFactory(declaration);
     const descriptors = Object.getOwnPropertyDescriptors(declaration.prototype);
@@ -39,19 +31,19 @@ exports.serviceFactory = (declaration, config) => {
     const propsAssignment = {};
     Object.keys(descriptors).forEach(prop => {
         const descriptor = descriptors[prop];
-        const transferState = descriptor.value[exports.ɵTransferState];
-        if (transferState) {
-            const stateContainer = document.getElementById(config.transferId);
-            if (stateContainer) {
-                propsAssignment[transferState.prop] = JSON.parse(JSON.parse(unescapeHtml(stateContainer.innerText))[declaration.name + '#' + prop + '#{}']);
-            }
-        }
         result.prototype[prop] = function () {
-            let isReadOnly = false;
-            if (descriptor.value[exports.ɵReadOnly]) {
-                isReadOnly = true;
-            }
-            return partialUnary(isReadOnly, prop, ...arguments);
+            const args = arguments;
+            const execute = () => partialUnary(!!descriptor.value[exports.ɵReadOnly], prop, ...args);
+            const middlewares = (descriptor.value[exports.ɵMiddleware] || {
+                middlewares: []
+            }).middlewares.slice();
+            const invokeMiddlewares = (current, middlewares) => {
+                if (current < 0) {
+                    return execute();
+                }
+                return middlewares[current](declaration, prop, () => invokeMiddlewares(current - 1, middlewares), ...args);
+            };
+            return invokeMiddlewares(middlewares.length - 1, middlewares);
         };
     });
     const instance = new result();

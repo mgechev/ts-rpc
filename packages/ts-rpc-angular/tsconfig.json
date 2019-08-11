@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "rootDir": ".",
     "allowJs": false,
     "target": "es5",
     "module": "commonjs",
@@ -12,8 +13,5 @@
     "types": ["jest", "node"]
   },
   "files": ["index.ts"],
-  "exclude": ["node_modules"],
-  "angularCompilerOptions": {
-    "strictMetadataEmit": false
-  }
+  "exclude": ["node_modules"]
 }

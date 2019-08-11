@@ -1,4 +1,5 @@
 {
+  "$schema": "./node_modules/ng-packagr/package.schema.json",
   "name": "ts-rpc-angular",
   "version": "0.0.0",
   "description": "TS-RPC integration with Angular. Adding state transfer.",
@@ -8,11 +9,7 @@
   "scripts": {
     "build": "ng-packagr -p package.json"
   },
-  "ngPackage": {
-    "lib": {
-      "entryFile": "index.ts"
-    }
-  },
+  "ngPackage": {},
   "peerDependencies": {
     "ts-rpc-reflect": "0.0.0"
   },
