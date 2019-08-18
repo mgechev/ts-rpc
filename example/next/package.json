@@ -1,0 +1,32 @@
+{
+  "name": "next",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "next build",
+    "start": "next"
+  },
+  "dependencies": {
+    "autobind": "^1.0.3",
+    "next": "^9.0.3",
+    "pg": "^7.12.1",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "react-redux": "^7.1.0",
+    "redux-thunk": "^2.3.0",
+    "sequelize": "^5.15.1",
+    "todomvc-app-css": "^2.2.0",
+    "todomvc-common": "^1.0.5",
+    "ts-rpc-client": "../../packages/ts-rpc-client/dist",
+    "ts-rpc-reflect": "../../packages/ts-rpc-reflect/dist",
+    "ts-rpc-server": "../../packages/ts-rpc-server/dist"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.4.4",
+    "@types/react": "^16.9.2",
+    "@zeit/next-css": "^1.0.1",
+    "@zeit/next-typescript": "^1.1.1",
+    "redux": "^4.0.4"
+  }
+}
