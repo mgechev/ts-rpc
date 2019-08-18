@@ -1,4 +1,5 @@
 import { getCacheKey } from './cache';
+import { Middleware, MiddlewareFn } from 'ts-rpc-reflect';
 
 export function unescapeHtml(text: string): string {
   const unescapedText: { [k: string]: string } = {
@@ -13,9 +14,9 @@ export function unescapeHtml(text: string): string {
 
 const usedCacheKeys = new Set<string>();
 
-export function transferState(key: string) {
+export function transferState(key: string): MiddlewareFn {
   return function(
-    service: Function,
+    service: { name: string },
     method: string,
     next: Function,
     ...args: any[]
@@ -35,4 +36,13 @@ export function transferState(key: string) {
     }
     return Promise.resolve(JSON.parse(result));
   };
+}
+
+export function TransferState(key: string = 'app') {
+  return (
+    service: any,
+    method: string,
+    descriptor: PropertyDescriptor
+  ): PropertyDescriptor =>
+    Middleware(transferState(key))(service, method, descriptor);
 }

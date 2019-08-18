@@ -2,7 +2,6 @@ import { TodosService } from './services/todos';
 
 import {
   BrowserModule,
-  BrowserTransferStateModule
 } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
@@ -32,8 +31,7 @@ export function todoServiceFactory() {
     }
   ],
   imports: [
-    BrowserModule.withServerTransition({ appId: 'todo-app' }),
-    BrowserTransferStateModule
+    BrowserModule
   ],
   bootstrap: [AppComponent]
 })
