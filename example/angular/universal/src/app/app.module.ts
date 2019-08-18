@@ -31,6 +31,7 @@ export function todoServiceFactory() {
     }
   ],
   imports: [
+    BrowserModule.withServerTransition({ appId: '' }),
     BrowserModule
   ],
   bootstrap: [AppComponent]
