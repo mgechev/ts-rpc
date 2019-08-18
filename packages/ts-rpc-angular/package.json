@@ -1,5 +1,4 @@
 {
-  "$schema": "./node_modules/ng-packagr/package.schema.json",
   "name": "ts-rpc-angular",
   "version": "0.0.0",
   "description": "TS-RPC integration with Angular. Adding state transfer.",

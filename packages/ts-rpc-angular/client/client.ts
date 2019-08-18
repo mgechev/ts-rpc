@@ -1,4 +1,4 @@
-import { getCacheKey } from './cache';
+import { getCacheKey } from '../cache';
 import { Middleware, MiddlewareFn } from 'ts-rpc-reflect';
 
 export function unescapeHtml(text: string): string {

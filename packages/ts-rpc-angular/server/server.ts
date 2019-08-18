@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { ɵescapeHtml as escapeHtml } from '@angular/platform-browser';
-import { getCacheKey } from './cache';
+import { getCacheKey } from '../cache';
 
 const data: { [key: string]: string } = {};
 
