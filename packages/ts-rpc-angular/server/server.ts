@@ -16,7 +16,6 @@ export function serializeTransferStateFactory(doc: Document, appId: string) {
   // Workaround Angular compiler issue
   void 0;
   return function() {
-    console.log('Adding state to the DOM');
     const script = doc.createElement('script');
     script.id = appId;
     script.setAttribute('type', 'application/json');
@@ -36,20 +35,15 @@ export function wrapServices(providers: Provider[]): any {
       Object.getOwnPropertyDescriptors(provider.useClass.prototype)
     );
 
-    console.log('Decorating', descriptors.length, 'methods');
     const proto = provider.useClass.prototype;
     descriptors.forEach(propName => {
-      console.log('Decorating method');
       const original = proto[propName] as Function;
-      console.log(original.toString());
       if (proto[propName].__DECORATED__) {
         return;
       }
       proto[propName] = function() {
-        console.log('Delegating to original');
         const args = [...arguments];
         return original.apply(this, args).then((res: any) => {
-          console.log('Setting state key');
           data[
             getCacheKey(provider.useClass.name, propName, args)
           ] = JSON.stringify(res);

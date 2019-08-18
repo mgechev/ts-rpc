@@ -48,7 +48,7 @@ export interface Config {
 
 const defaultConfig = {
   fetch: ((typeof global !== 'undefined' ? global : window) as any).fetch,
-  host: (typeof location !== 'undefined') ? location.protocol + '//' + location.host + ':9211' : ''
+  host: (typeof location !== 'undefined') ? location.protocol + '//' + location.hostname + ':9211' : ''
 };
 
 export const serviceFactory = <T extends Function>(

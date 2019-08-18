@@ -1,7 +1,6 @@
 import { Todo } from '../models/todo';
 import { Read, rpc } from 'ts-rpc-reflect';
-import { TransferState } from 'ts-rpc-angular';
-
+import { TransferState } from 'ts-rpc-angular/client';
 
 export abstract class TodosService {
   @TransferState() @Read() getAll(): Promise<Todo[]> { return rpc(); }

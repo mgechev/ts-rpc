@@ -1,3 +1,4 @@
+rm -rf dist
 ./node_modules/.bin/ngc
 rm -rf dist/node_modules
 cp package.json dist/

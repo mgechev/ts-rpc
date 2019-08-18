@@ -49,7 +49,7 @@ const deserializeJson = (buffer: Buffer) => {
   return JSON.parse(buffer.toString());
 };
 
-export const listen = (address: string, port: number) => {
+export const listen = (address: string = '0.0.0.0', port: number = 8081) => {
   const socket = address + ':' + port;
   server.bind(socket, grpc.ServerCredentials.createInsecure());
   success(`TS RPC listening on ${socket}`)

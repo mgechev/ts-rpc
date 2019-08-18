@@ -12,6 +12,6 @@
     "downlevelIteration": true,
     "types": ["jest", "node"]
   },
-  "files": ["index.ts"],
+  "files": ["server/index.ts", "client/index.ts"],
   "exclude": ["node_modules"]
 }

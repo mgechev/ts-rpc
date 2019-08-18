@@ -26,7 +26,7 @@ const baseFactory = (_) => {
 };
 const defaultConfig = {
     fetch: (typeof global !== 'undefined' ? global : window).fetch,
-    host: (typeof location !== 'undefined') ? location.protocol + '//' + location.host + ':9211' : ''
+    host: (typeof location !== 'undefined') ? location.protocol + '//' + location.hostname + ':9211' : ''
 };
 exports.serviceFactory = (declaration, config = defaultConfig) => {
     const result = baseFactory(declaration);
