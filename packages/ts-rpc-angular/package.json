@@ -7,9 +7,8 @@
   "author": "Minko Gechev <mgechev@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "ng-packagr -p package.json"
+    "build": "./infra/build"
   },
-  "ngPackage": {},
   "peerDependencies": {
     "ts-rpc-reflect": "0.0.0"
   },
@@ -21,6 +20,7 @@
     "@angular/core": "^8.2.1",
     "@angular/platform-browser": "^8.2.1",
     "@angular/platform-server": "^8.2.1",
-    "ng-packagr": "^5.4.3"
+    "@types/node": "^12.7.2",
+    "ts-node": "^8.3.0"
   }
 }

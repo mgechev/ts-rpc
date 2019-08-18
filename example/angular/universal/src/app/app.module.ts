@@ -13,13 +13,7 @@ import { TodosFilter } from './todos/todos.pipe';
 import { serviceFactory } from 'ts-rpc-reflect';
 
 export function todoServiceFactory() {
-  return serviceFactory(
-    TodosService,
-    {
-      fetch: ((typeof global !== 'undefined' ? global : window) as any).fetch,
-      host: 'http://127.0.0.1:9211',
-    }
-  );
+  return serviceFactory(TodosService);
 }
 
 @NgModule({

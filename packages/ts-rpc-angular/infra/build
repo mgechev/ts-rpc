@@ -1,0 +1,7 @@
+./node_modules/.bin/ngc
+rm -rf dist/node_modules
+cp package.json dist/
+cp README.md dist/
+cd dist
+find ./ -name ".ngfactory." -exec rm -rf {} \;
+cd ..

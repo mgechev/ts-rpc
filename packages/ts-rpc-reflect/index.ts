@@ -46,9 +46,14 @@ export interface Config {
   host: string;
 }
 
+const defaultConfig = {
+  fetch: ((typeof global !== 'undefined' ? global : window) as any).fetch,
+  host: (typeof location !== 'undefined') ? location.protocol + '//' + location.host + ':9211' : ''
+};
+
 export const serviceFactory = <T extends Function>(
   declaration: T,
-  config: Config
+  config: Config = defaultConfig
 ): T => {
   const result = baseFactory(declaration);
   const descriptors = Object.getOwnPropertyDescriptors(declaration.prototype);

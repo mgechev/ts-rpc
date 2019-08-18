@@ -24,7 +24,11 @@ exports.Read = () => {
 const baseFactory = (_) => {
     return function () { };
 };
-exports.serviceFactory = (declaration, config) => {
+const defaultConfig = {
+    fetch: (typeof global !== 'undefined' ? global : window).fetch,
+    host: (typeof location !== 'undefined') ? location.protocol + '//' + location.host + ':9211' : ''
+};
+exports.serviceFactory = (declaration, config = defaultConfig) => {
     const result = baseFactory(declaration);
     const descriptors = Object.getOwnPropertyDescriptors(declaration.prototype);
     const partialUnary = ts_rpc_client_1.grpcUnary.bind(null, config.fetch, config.host, declaration.name);

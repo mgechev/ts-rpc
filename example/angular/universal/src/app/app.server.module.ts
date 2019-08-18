@@ -3,9 +3,9 @@ import { ServerModule } from '@angular/platform-server';
 
 import { AppModule } from './app.module';
 import { AppComponent } from './app.component';
-import { TodosService } from './services';
+import { TodosService } from './server';
 import { TodosService as TodosServiceDeclaration } from './services/todos';
-import { TSRPCAngularModule, wrapServices } from 'ts-rpc-angular/src/server';
+import { TSRPCAngularModule, wrapServices } from 'ts-rpc-angular/server';
 
 wrapServices([{
   provide: TodosServiceDeclaration,

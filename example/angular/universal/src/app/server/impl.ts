@@ -1,4 +1,4 @@
-import { TodosService as TodosService1 } from './todos';
+import { TodosService as TodosService1 } from '../services/todos';
 import { Service } from 'ts-rpc-server';
 import { findAll, create, update, destroy } from './db';
 import { Todo } from '../models/todo';

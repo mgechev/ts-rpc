@@ -13,4 +13,4 @@ export interface Config {
     fetch: FetchFn;
     host: string;
 }
-export declare const serviceFactory: <T extends Function>(declaration: T, config: Config) => T;
+export declare const serviceFactory: <T extends Function>(declaration: T, config?: Config) => T;
