@@ -12,18 +12,16 @@ import { TodosFilter } from './todos/todos.pipe';
 
 import { serviceFactory } from 'ts-rpc-reflect';
 
-export function todoServiceFactory() {
-  return serviceFactory(TodosService);
-}
+// Use tree-shakable providers
+// export function todoServiceFactory() {
+//   return serviceFactory(TodosService);
+// }
 
 @NgModule({
   declarations: [AppComponent, TodosComponent, TodoComponent, TodosFilter],
-  providers: [
-    {
-      provide: TodosService,
-      useFactory: todoServiceFactory
-    }
-  ],
+  // providers: [
+  //   // TodosService,
+  // ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'app' }),
     BrowserModule

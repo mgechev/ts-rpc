@@ -7,21 +7,23 @@ import { TodosService } from './server';
 import { TodosService as TodosServiceDeclaration } from './services/todos';
 import { TSRPCAngularModule, wrapServices } from 'ts-rpc-angular/server';
 
-wrapServices([{
-  provide: TodosServiceDeclaration,
-  useClass: TodosService
-}]);
+// wrapServices([{
+//   provide: TodosServiceDeclaration,
+//   useClass: TodosService
+// }]);
 
 @NgModule({
   imports: [
     AppModule,
     ServerModule,
-    TSRPCAngularModule.register(
+  ],
+  providers: [
+    // TSRPCAngularModule.register(
       {
         provide: TodosServiceDeclaration,
         useClass: TodosService
       }
-    )
+    // )
   ],
   bootstrap: [AppComponent],
 })
