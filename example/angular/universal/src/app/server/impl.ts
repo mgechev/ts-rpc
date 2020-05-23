@@ -2,7 +2,7 @@ import { TodosService as TodosServiceDeclaration } from '../services/todos';
 import { Service } from 'ts-rpc-server';
 import { findAll, create, update, destroy } from './db';
 import { Todo } from '../models/todo';
-import { Injectable } from "@angular/core";
+import { Injectable } from '@angular/core';
 
 @Injectable()
 @Service()

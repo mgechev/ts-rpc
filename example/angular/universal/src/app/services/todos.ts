@@ -5,10 +5,7 @@ import { Injectable } from '@angular/core';
 
 @Injectable({
   providedIn: 'root',
-  useFactory() {
-    debugger;
-    return serviceFactory(TodosService);
-  },
+  useFactory: () => serviceFactory(TodosService)
 })
 export abstract class TodosService {
   @TransferState() @Read() getAll(): Promise<Todo[]> { return rpc(); }
