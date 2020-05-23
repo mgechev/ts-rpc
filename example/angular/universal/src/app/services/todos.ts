@@ -6,6 +6,7 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root',
   useFactory() {
+    debugger;
     return serviceFactory(TodosService);
   },
 })

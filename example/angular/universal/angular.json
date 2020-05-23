@@ -19,7 +19,7 @@
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
-            "aot": false,
+            "aot": true,
             "assets": [
               "src/favicon.ico",
               "src/assets"
@@ -44,7 +44,6 @@
               "sourceMap": false,
               "extractCss": true,
               "namedChunks": false,
-              "aot": true,
               "extractLicenses": true,
               "vendorChunk": false,
               "buildOptimizer": true,
@@ -53,6 +52,10 @@
                   "type": "initial",
                   "maximumWarning": "2mb",
                   "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb"
                 }
               ]
             }
@@ -121,26 +124,54 @@
           "builder": "@angular-devkit/build-angular:server",
           "options": {
             "outputPath": "dist/server",
-            "main": "src/main.server.ts",
-            "tsConfig": "tsconfig.server.json"
+            "main": "server.ts",
+            "tsConfig": "tsconfig.server.json",
+            "bundleDependencies": false
           },
           "configurations": {
             "production": {
+              "bundleDependencies": false,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.prod.ts"
                 }
               ],
-              "sourceMap": false,
-              "optimization": {
-                "scripts": false,
-                "styles": true
-              }
+              "sourceMap": false
             }
+          }
+        },
+        "serve-ssr": {
+          "builder": "@nguniversal/builders:ssr-dev-server",
+          "options": {
+            "browserTarget": "universal:build",
+            "serverTarget": "universal:server"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "universal:build:production",
+              "serverTarget": "universal:server:production"
+            }
+          }
+        },
+        "prerender": {
+          "builder": "@nguniversal/builders:prerender",
+          "options": {
+            "browserTarget": "universal:build:production",
+            "serverTarget": "universal:server:production",
+            "routes": [
+              "/"
+            ]
+          },
+          "configurations": {
+            "production": {}
           }
         }
       }
-    }},
-  "defaultProject": "universal"
+    }
+  },
+  "defaultProject": "universal",
+  "cli": {
+    "analytics": "afa0bff6-9f92-481e-994d-09618756b070"
+  }
 }
