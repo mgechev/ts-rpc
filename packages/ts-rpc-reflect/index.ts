@@ -2,6 +2,7 @@ import { grpcUnary, FetchFn } from 'ts-rpc-client';
 
 export const ɵReadOnly = Symbol('ts-rpc-reflect.ReadOnly');
 export const ɵMiddleware = Symbol('ts-rpc-reflect.Middleware');
+export const ɵMetadata = Symbol('ts-rpc-reflect.Metadata');
 
 export const rpc = (): any => new Error('Not implemented');
 
@@ -22,6 +23,18 @@ export const Middleware = (middleware: MiddlewareFn) => {
       method
     };
     descriptor.value[ɵMiddleware].middlewares.push(middleware);
+    return descriptor;
+  };
+};
+
+export const Metadata = (metadata: [string, string | number]) => {
+  return (service: any, method: string, descriptor: PropertyDescriptor) => {
+    descriptor.value[ɵMetadata] = descriptor.value[ɵMetadata] || {
+      metadatas: [],
+      service,
+      method
+    };
+    descriptor.value[ɵMetadata].metadatas.push(metadata);
     return descriptor;
   };
 };
@@ -64,17 +77,25 @@ export const serviceFactory = <T extends Function>(
     declaration.name
   );
   const propsAssignment: { [prop: string]: string } = {};
+  const metadata: Map<string, string | number> = new Map();
   Object.keys(descriptors).forEach(prop => {
     const descriptor = descriptors[prop];
     result.prototype[prop] = function() {
       const args = arguments;
+
+      (descriptor.value as any)[ɵMetadata]?.metadatas.forEach((m: [string, string | number]) => {
+        metadata.set(m[0], m[1]);
+      });
+
       const execute = () =>
-        partialUnary(!!(descriptor.value as any)[ɵReadOnly], prop, ...args);
+        partialUnary(!!(descriptor.value as any)[ɵReadOnly], prop, metadata, ...args);
+
       const middlewares = (
         (descriptor.value as any)[ɵMiddleware] || {
           middlewares: []
         }
       ).middlewares.slice() as MiddlewareFn[];
+
       const invokeMiddlewares = <T>(
         current: number,
         middlewares: MiddlewareFn[]

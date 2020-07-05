@@ -3,7 +3,7 @@ import { Todo } from '../models/todo';
 import { BuildOptions } from 'sequelize';
 
 const sequelize = new Sequelize('tsrpcdb', 'postgres', '', {
-  host: 'localhost',
+  host: process.env.DB_HOST || '0.0.0.0',
   dialect: 'postgres',
   pool: {
     max: 5,

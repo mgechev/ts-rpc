@@ -1,0 +1,22 @@
+FROM node:12.18.2
+
+ENV NODE_ENV dev
+ENV NODE_CONFIG_ENV dev
+
+# build packages
+WORKDIR /tmp
+COPY package.json yarn.lock lerna.json /tmp/
+ADD packages /tmp/packages
+RUN yarn && yarn build
+# align package destination with example package.json expectations
+RUN mv packages /packages
+
+# install deps and run dev server
+WORKDIR /usr/src/app
+COPY example/angular/universal/package.json ./package.json
+COPY example/angular/universal/yarn.lock ./yarn.lock
+RUN yarn
+COPY example/angular/universal .
+RUN ln -s node_modules dist/server/node_modules
+EXPOSE 8081 4200
+CMD [ "yarn", "run", "dev:ssr" ]
