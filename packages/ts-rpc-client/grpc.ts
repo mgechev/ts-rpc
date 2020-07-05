@@ -31,6 +31,7 @@ export function grpcUnary(
   // side-effect
   _: boolean,
   methodName: string,
+  metadata: Map<string, string | number>,
   ...args: any[]
 ) {
   const body = getBody(args);
@@ -38,7 +39,8 @@ export function grpcUnary(
     method: 'POST',
     mode: 'cors',
     headers: {
-      'content-type': 'application/grprc'
+      'content-type': 'application/grprc',
+      ...Object.fromEntries(metadata.entries())
     },
     body
   })

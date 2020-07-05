@@ -10,7 +10,7 @@
     "strict": true,
     "outDir": "dist",
     "downlevelIteration": true,
-    "types": ["jest", "node"]
+    "types": ["node"]
   },
   "files": ["server/index.ts", "index.ts"],
   "exclude": ["node_modules"]

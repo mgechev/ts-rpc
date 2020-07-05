@@ -1,0 +1,35 @@
+version: "3.7"
+services:
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      - DB_HOST=db
+    volumes:
+      - "./example/angular/universal/src:/usr/src/app/src"
+      - "./example/angular/universal/e2e:/usr/src/app/e2e"
+      - "./packages:/packages"
+    ports:
+      - "4200:4200"
+      - "8081:8081"
+      - "37759:37759"
+    depends_on:
+      - "envoy"
+      - "db"
+
+  envoy:
+    build:
+      context: example/envoy
+    ports:
+      - "9211:9211"
+      - "9901:9901"
+
+  # service name should match DB_HOST above
+  db:
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    build:
+      context: example/db
+    ports:
+      - "5432:5432"
