@@ -1,6 +1,8 @@
 import { getCacheKey } from './cache';
 import { Middleware, MiddlewareFn } from 'ts-rpc-reflect';
 
+export * from './auth';
+
 export function unescapeHtml(text: string): string {
   const unescapedText: { [k: string]: string } = {
     '&a;': '&',

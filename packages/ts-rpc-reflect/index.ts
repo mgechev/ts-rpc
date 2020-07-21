@@ -3,6 +3,7 @@ import { grpcUnary, FetchFn } from 'ts-rpc-client';
 export const ɵReadOnly = Symbol('ts-rpc-reflect.ReadOnly');
 export const ɵMiddleware = Symbol('ts-rpc-reflect.Middleware');
 export const ɵMetadata = Symbol('ts-rpc-reflect.Metadata');
+export const ɵRequiresAuth = Symbol('ts-rpc-reflect.AuthRequired');
 
 export const rpc = (): any => new Error('Not implemented');
 
@@ -13,6 +14,11 @@ export interface MiddlewareFn {
     next: (...args: any[]) => T,
     ...args: any[]
   ): T;
+}
+
+export interface TokenHandler {
+  getToken(): string;
+  setToken(token: string): void;
 }
 
 export const Middleware = (middleware: MiddlewareFn) => {
@@ -27,7 +33,7 @@ export const Middleware = (middleware: MiddlewareFn) => {
   };
 };
 
-export const Metadata = (metadata: [string, string | number]) => {
+export const Metadata = (metadata: [string, (string | number)?]) => {
   return (service: any, method: string, descriptor: PropertyDescriptor) => {
     descriptor.value[ɵMetadata] = descriptor.value[ɵMetadata] || {
       metadatas: [],
@@ -36,6 +42,18 @@ export const Metadata = (metadata: [string, string | number]) => {
     };
     descriptor.value[ɵMetadata].metadatas.push(metadata);
     return descriptor;
+  };
+};
+
+export const RequiresAuth = (tokenHandler: TokenHandler) => {
+  return (service: any, method: string, descriptor: PropertyDescriptor) => {
+    descriptor.value[ɵRequiresAuth] = true;
+    const token = tokenHandler.getToken();
+    if(!token) {
+      console.log('warning: TokenHandler.getToken() returned null or invalid token');
+      return descriptor;
+    }
+    return Metadata(['Authorization', `Bearer ${token}`])(service, method, descriptor);
   };
 };
 
@@ -83,9 +101,20 @@ export const serviceFactory = <T extends Function>(
     result.prototype[prop] = function() {
       const args = arguments;
 
+      const requiresAuth = !!(descriptor.value as any)[ɵRequiresAuth];
+      let authPresent = false;
+
       (descriptor.value as any)[ɵMetadata]?.metadatas.forEach((m: [string, string | number]) => {
+        if(m[0] == 'Authorization') {
+          authPresent = true;
+        }
         metadata.set(m[0], m[1]);
       });
+
+      if(requiresAuth && !authPresent) {
+        console.log('warning: auth header not found for @RequiresAuth decorated service method.')
+        // todo: better error handling?
+      }
 
       const execute = () =>
         partialUnary(!!(descriptor.value as any)[ɵReadOnly], prop, metadata, ...args);

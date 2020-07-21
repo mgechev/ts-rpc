@@ -3,6 +3,7 @@ import { Service } from 'ts-rpc-server';
 import { findAll, create, update, destroy } from './db';
 import { Todo } from '../models/todo';
 import { Injectable } from '@angular/core';
+import {AuthServiceServer} from 'ts-rpc-lib';
 
 @Injectable()
 @Service()
@@ -30,3 +31,15 @@ export class TodosService extends TodosServiceDeclaration {
   }
 }
 
+@Injectable()
+@Service()
+export class AuthService extends AuthServiceServer {
+  constructor() {
+    super({
+      authenticate(username: string, password: string): string | null {
+        // todo: implement for real, calling into db to validate password hash and returning userid
+        return '1';
+      }
+    });
+  }
+}

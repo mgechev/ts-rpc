@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "target": "es2019",
+    "lib": ["es2019", "dom"],
+    "module": "commonjs",
+    "sourceMap": true,
+    "declaration": true,
+    "experimentalDecorators": true,
+    "strict": true,
+    "outDir": "dist",
+    "downlevelIteration": true
+  },
+  "files": ["index.ts"],
+  "exclude": ["node_modules"]
+}
