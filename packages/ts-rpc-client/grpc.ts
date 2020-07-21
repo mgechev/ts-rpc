@@ -20,7 +20,9 @@ const parseResponse = (arr: ArrayBuffer) => {
   const decoder = new TextDecoder();
   const res = decoder.decode(view.slice(5));
   if (res.length) {
-    return JSON.parse(res);
+    const r = JSON.parse(res);
+    console.log(r);
+    return r;
   }
 };
 

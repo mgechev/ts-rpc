@@ -27,6 +27,7 @@
     "@angular/platform-browser-dynamic": "^9.1.9",
     "@angular/platform-server": "~9.1.9",
     "@angular/router": "~9.1.9",
+    "@auth0/angular-jwt": "^5.0.1",
     "@nguniversal/express-engine": "^9.1.1",
     "core-js": "^3.6.5",
     "express": "^4.15.2",
@@ -39,6 +40,7 @@
     "ts-rpc-client": "../../../packages/ts-rpc-client/dist",
     "ts-rpc-reflect": "../../../packages/ts-rpc-reflect/dist",
     "ts-rpc-server": "../../../packages/ts-rpc-server/dist",
+    "ts-rpc-lib": "../../../packages/ts-rpc-lib/dist",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.2"
   },

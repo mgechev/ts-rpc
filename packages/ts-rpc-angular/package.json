@@ -9,7 +9,8 @@
     "build": "./infra/build"
   },
   "peerDependencies": {
-    "ts-rpc-reflect": "0.0.0"
+    "ts-rpc-reflect": "0.0.0",
+    "ts-rpc-lib": "0.0.0"
   },
   "devDependencies": {
     "@angular/animations": "^8.2.1",
@@ -20,6 +21,7 @@
     "@angular/platform-browser": "^8.2.1",
     "@angular/platform-server": "^8.2.1",
     "@types/node": "^12.7.2",
-    "ts-node": "^8.3.0"
+    "ts-node": "^8.3.0",
+    "typescript": "3.5.2"
   }
 }
